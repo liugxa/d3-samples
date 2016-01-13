@@ -2,34 +2,42 @@
 <html>
 	<head>
 		<script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
-		<script src="./js/progress-bar.js" charset="utf-8"></script>
-		<link rel="stylesheet" type="text/css" href="./css/progress-bar.css"/>
-		
-		<!-- special progress bar javascript file -->
-		<script src="./js/progress-bar-pending.js" charset="utf-8"></script>
+		<script src="progress-bar.js" charset="utf-8"></script>
 	</head>
-		
+	
+	<style type=text/css>
+		table{
+			border-style: none;
+		}
+		td {
+			border-style: none;
+		}
+		th {
+			border: 1px solid;
+			border-color: #9ca1a6;
+			background-color: #DDDDDD;
+		}
+	</style>	
 	<body>
 		<table>
 			<tr>
-				<th>Pending (no PTL)</th>
-				<td><div id="div0" style="width:500px;height:80px"/></td>
+				<th>20PX</th>
+				<td><div id="div0" style="width:500px;height:20px"/></td>
 			</tr>
 			<tr>
-				<th>Pending (EST &lt; PTL)</th>
-				<td><div id="div1" style="width:500px;height:80px"/></td>
+				<th>40PX</th>
+				<td><div id="div1" style="width:500px;height:40px"/></td>
 			</tr>
 			<tr>
-				<th>Pending (EST = PTL)</th>
-				<td><div id="div2" style="width:500px;height:80px"/></td>
+				<th>60PX</th>
+				<td><div id="div2" style="width:500px;height:60px"/></td>
 			</tr>
 			<tr>
-				<th>Pending (EST &gt; PTL)</th>
+				<th>80PX</th>
 				<td><div id="div3" style="width:500px;height:80px"/></td>
 			</tr>
 		</table>
 		
-		<!-- <div class="tooltip">Current Time: 2015-12-09 10:05:00</div> -->
 		<script>
 			function showCase0(){			
 				var smtTime = new Date("2015-12-31T00:00:00.0000Z");
@@ -76,9 +84,7 @@
 				var context = new ProgressBarContext(container);
 				
 				//initilize the progress bar object
-				//var progressBar = new PendingProgressBar(context, smtTime, ctTime, estTime, ptlTime);
-				//progressBar.init();
-				var progressBar = new PendingProgressBar(context, smtTime, ctTime, estTime, ptlTime).init();
+				var progressBar = new PendingProgressBar(context, smtTime, ctTime, estTime, ptlTime);
 				
 				//show all of the progressers
 				var progressers = progressBar.getProgressers();
@@ -87,10 +93,7 @@
 				//show all of the timers
 				var timers = progressBar.getTimers();
 				for(var i=0;i<timers.length;i++) timers[i].show();			
-				
-				//show all of the timer bars
-				var timerBars = progressBar.getTimerBars();
-				for(var i=0;i<timerBars.length;i++) timerBars[i].show();	
+			
 			}
 			
 			function main(){
