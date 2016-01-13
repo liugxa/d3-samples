@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	</head>
+	<body>
+		<a href="./progress-bar-pending.html">progress pending bars</a>
+		<p>
+		
+		<a href="./progress-bar-running.html">progress running bars</a>
+		<p>
+		
+		<a href="./progress-bars.html">progress bars (other status)</a>
+		<p>
+		
+		<strong>Usage Example</strong>
+		<p>
+		
+		<code>var smtTime = new Date("2015-12-31T00:00:00.0000Z");</code> <br>
+		<code>var stTime  = new Date("2015-12-31T00:10:00.0000Z");</code> <br>
+		<code>var ctTime  = new Date("2015-12-31T00:20:00.0000Z");</code> <br>
+		<code>var eetTime = new Date("2015-12-31T00:59:00.0000Z");</code> <br>
+		<code>var rtlTime = null;</code> <br>
+		<p>
+		
+		<kbd>//initialize the context</kbd> <br>
+		<code>var container = d3.select("#div0");</code> <br>
+		<code>var context = new ProgressBarContext(container);</code> <br>
+		<p>
+		
+		<kbd>//initilize the progress bar object</kbd> <br>
+		<code>var progressBar = new RunningProgressBar(context, smtTime, stTime, ctTime, eetTime, rtlTime);</code> <br>
+		<p>
+		
+		<kbd>//show all of the progressers</kbd> <br>
+		<code>var progressers = progressBar.getProgressers();</code> <br>
+		<code>for(var i=0;i<progressers.length;i++) progressers[i].show();</code> <br>
+		<p>
+		
+		<kbd>//show all of the timers</kbd> <br>
+		<code>var timers = progressBar.getTimers();</code> <br>
+		<code>for(var i=0;i<timers.length;i++) timers[i].show();</code> <br>
+	</body>
+</html>

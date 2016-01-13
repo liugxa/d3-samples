@@ -2,39 +2,29 @@
 <html>
 	<head>
 		<script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
-		<script src="progress-bar.js" charset="utf-8"></script>
+		<script src="./js/progress-bar.js" charset="utf-8"></script>
+		<link rel="stylesheet" type="text/css" href="./css/progress-bar.css"/>
+		
+		<!-- special progress bar javascript file -->
+		<script src="./js/progress-bar-running.js" charset="utf-8"></script>
 	</head>
-	
-	<style type=text/css>
-		table{
-			border-style: none;
-		}
-		td {
-			border-style: none;
-		}
-		th {
-			border: 1px solid;
-			border-color: #9ca1a6;
-			background-color: #DDDDDD;
-		}
-	</style>
 	
 	<body>
 		<table>
 			<tr>
-				<th>20PX</th>
-				<td><div id="div0" style="width:500px;height:20px"/></td>
+				<th>Running (no RTL)</th>
+				<td><div id="div0" style="width:500px;height:80px"/></td>
 			</tr>
 			<tr>
-				<th>40PX</th>
-				<td><div id="div1" style="width:500px;height:40px"/></td>
+				<th>Running (EET &lt; RTL)</th>
+				<td><div id="div1" style="width:500px;height:80px"/></td>
 			</tr>
 			<tr>
-				<th>60PX</th>
-				<td><div id="div2" style="width:500px;height:60px"/></td>
+				<th>Running (EET = RTL)</th>
+				<td><div id="div2" style="width:500px;height:80px"/></td>
 			</tr>
 			<tr>
-				<th>80PX</th>
+				<th>Running (EET &gt; RTL)</th>
 				<td><div id="div3" style="width:500px;height:80px"/></td>
 			</tr>
 		</table>
@@ -90,6 +80,7 @@
 				
 				//initilize the progress bar object
 				var progressBar = new RunningProgressBar(context, smtTime, stTime, ctTime, eetTime, rtlTime);
+				progressBar.init();
 				
 				//show all of the progressers
 				var progressers = progressBar.getProgressers();
@@ -97,8 +88,11 @@
 				
 				//show all of the timers
 				var timers = progressBar.getTimers();
-				for(var i=0;i<timers.length;i++) timers[i].show();			
-			
+				for(var i=0;i<timers.length;i++) timers[i].show();
+				
+				//show all of the timer bars
+				var timerBars = progressBar.getTimerBars();
+				for(var i=0;i<timerBars.length;i++) timerBars[i].show();	
 			}
 			
 			function main(){
