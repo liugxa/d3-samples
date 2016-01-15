@@ -1,6 +1,7 @@
 function Colors(){
-	this.COLOR_BLACK = "rgb(128, 128, 128)";
-	this.COLOR_WHITE = "rgb(255, 255, 255)";
+	this.COLOR_BLACK = "rgb(54,54,54)";
+	this.COLOR_WHITE = "rgb(255,255,255)";
+	this.COLOR_DARK_GRAY = "rgb(118,119,119)";
 	this.COLOR_GRAY = "#dddddd";
 	this.COLOR_YELLOW = "#f0cc00";
 	this.COLOR_GREEN = "#60942c";
@@ -424,15 +425,27 @@ function TimerBar(context, name, time, x, y){
 		var t1_x = rx + (this.width / 10);
 		var t1_y = ry + (this.height * 2 / 5);
 		var format = d3.time.format("%Y-%m-%d");
-		t1.attr("x", t1_x).attr("y", t1_y).attr("width", this.width).attr("height", this.height).text(format(this.time));
-		t1.style("font-size", tfont).style("font-style", "italic");
+		t1.attr("x", t1_x).attr("y", t1_y).attr("width", this.width).attr("height", this.height);
+		t1.style("font-size", tfont).text(format(this.time));
+		if(this.name == "endTime") {
+			t1.attr("fill", this.context.colors.COLOR_DARK_GRAY);
+			t1.style("font-style", "italic");
+		}else{
+			t1.attr("fill", this.context.colors.COLOR_BLACK);
+		}
 		
 		//draw the stamp
 		var t = this.context.svg.append("text");
 		var tx = t1_x;
 		var ty = ry + (this.height * 4 / 5);	
 		var format = d3.time.format("%H:%M:%S");
-		t.attr("x", tx).attr("y", ty).attr("width", this.width).attr("height", this.height).text(format(this.time));
-		t.style("font-size", tfont).style("font-style", "italic");
+		t.attr("x", tx).attr("y", ty).attr("width", this.width).attr("height", this.height);
+		t.style("font-size", tfont).text(format(this.time));
+		if(this.name == "endTime") {
+			t.attr("fill", this.context.colors.COLOR_DARK_GRAY);
+			t.style("font-style", "italic");
+		}else{
+			t.attr("fill", this.context.colors.COLOR_BLACK);
+		}
 	}
 }
