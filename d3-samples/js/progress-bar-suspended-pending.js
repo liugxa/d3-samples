@@ -2,7 +2,18 @@ function SuspendedPendingProgressBar(context, smtTime, sptTime){
 	this.context = context;
 	this.smtTime = smtTime;
 	this.sptTime = sptTime;
-	this.dpb = new DefaultProgressBar(context);
+	
+	this.init = function(){
+		return new DefaultProgressBar().init(this);
+	}
+
+	this.getTimerBars = function(){
+		return new DefaultProgressBar().getTimerBars(this);
+	}
+	
+	this.getBeginTime = function(){
+		return this.smtTime;
+	}
 	
 	this.getStartTime = function(){
 		return this.smtTime;
@@ -11,10 +22,10 @@ function SuspendedPendingProgressBar(context, smtTime, sptTime){
 	this.getEndTime = function(){
 		return this.sptTime;
 	}
-	
-	this.init = this.dpb.init();
-	
-	this.getTimerBars = this.dpb.getTimerBars();
+
+	this.getFinishTime = function(){
+		return this.sptTime;
+	}
 	
 	this.getProgressers = function(){
 		var r = [];
@@ -24,7 +35,7 @@ function SuspendedPendingProgressBar(context, smtTime, sptTime){
 		var x1 = x + this.context.xMargin; 
 		var y1 = y + this.context.yMargin;
 		var r1 = (this.sptTime - this.smtTime) * this.context.xUnit;
-		r.push(new Progresser(this.context, this.smtTime, this.sptTime, x1, y1, COLOR_SUSPENDED, "Pending Duration"));
+		r.push(new Progresser(this.context, this.smtTime, this.sptTime, x1, y1, this.context.colors.COLOR_SUSPENDED, "Pending Duration"));
 		
 		return r;
 	}
@@ -37,7 +48,7 @@ function SuspendedPendingProgressBar(context, smtTime, sptTime){
 		if(this.smtTime){
 			var x1 = x + this.context.xMargin; 
 			var y1 = y + this.context.yMargin;
-			r.push(new Timer(this.context, "SMT", this.smtTime, x1, y1, COLOR_GRAY));
+			r.push(new Timer(this.context, "SMT", this.smtTime, x1, y1, this.context.colors.COLOR_GRAY));
 		}
 		
 		//sptTime
@@ -45,7 +56,7 @@ function SuspendedPendingProgressBar(context, smtTime, sptTime){
 			var s2 = (this.sptTime - this.smtTime) * this.context.xUnit;
 			var x2 = x1 + s2; 
 			var y2 = y1;
-			r.push(new Timer(this.context, "SPT", this.sptTime, x2, y2, COLOR_PINK));
+			r.push(new Timer(this.context, "SPT", this.sptTime, x2, y2, this.context.colors.COLOR_PINK));
 		}
 		return r;
 	}

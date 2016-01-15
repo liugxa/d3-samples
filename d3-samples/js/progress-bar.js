@@ -1,20 +1,22 @@
-var COLOR_BLACK = "rgb(128, 128, 128)";
-var COLOR_WHITE = "rgb(255, 255, 255)";
-var COLOR_GRAY = "#dddddd";
-var COLOR_YELLOW = "#f0cc00";
-var COLOR_GREEN = "#60942c";
-var COLOR_RED = "#b2293d";
-var COLOR_PINK = "#e17e2d";
+function Colors(){
+	this.COLOR_BLACK = "rgb(128, 128, 128)";
+	this.COLOR_WHITE = "rgb(255, 255, 255)";
+	this.COLOR_GRAY = "#dddddd";
+	this.COLOR_YELLOW = "#f0cc00";
+	this.COLOR_GREEN = "#60942c";
+	this.COLOR_RED = "#b2293d";
+	this.COLOR_PINK = "#e17e2d";
 
-var COLOR_RUNNING = "#60942c";
-var COLOR_WAITING = "#fff69b";
-var COLOR_SUSPENDED = "#e17e2d";
-var COLOR_PENDING = "#f0cc00";
-var COLOR_EXITED = "#b2293d";
-var COLOR_DONE = "#dddddd";
-var COLOR_HOLD = "#eeeef0";
+	this.COLOR_RUNNING = "#60942c";
+	this.COLOR_WAITING = "#fff69b";
+	this.COLOR_SUSPENDED = "#e17e2d";
+	this.COLOR_PENDING = "#f0cc00";
+	this.COLOR_EXITED = "#b2293d";
+	this.COLOR_DONE = "#dddddd";
+	this.COLOR_HOLD = "#eeeef0";
+}
 
-function Constants(){
+function I18n(){
 	this.get = function(name){
 		var r = {
 			"SMT": {"name": "SMT", "wholeName": "Submitted Time"},
@@ -28,7 +30,6 @@ function Constants(){
 			"EET": {"name": "EET", "wholeName": "Estimated End Time"},
 			"RTL": {"name": "RTL", "wholeName": "Run Time Limit"},
 			"EET=RTL": {"name": "EET=RTL", "wholeName": "Run Time Limit"},
-			
 		};
 		return r[name];
 	}
@@ -47,319 +48,66 @@ function ProgressBarContext(container){
 	this.svg.attr("width", this.w);
 	this.svg.attr("height", this.h);
 	
+	/* the switch to showing the time name or not */
 	this.showTimerName = false;
+	
+	/* the switch to showing the time stamp or not */
 	this.showTimerBar = true;
-	this.constants = new Constants();
+	
+	/* i18n messages */	
+	this.i18n = new I18n();
+	
+	/* the statistic colors */
+	this.colors = new Colors();
 	
 	//the 2 lays are capable of the size
-	this.yCount = (this.showTimerBar == true) ? 5 : 2;
-	
+	this.yCount = (this.showTimerBar == true) ? 4 : 2;
 	this.xUnit = -1;
 	this.yUnit = -1;
 	this.xMargin = -1;
 	this.yMargin = -1;
-	
-	this.resetXY = function(startTime, endTime){
-		this.yUnit = this.h / this.yCount;
+}
 
-		this.xMargin = this.yUnit / 2;
-		this.yMargin = this.yUnit;
+function DefaultProgressBar(){
+	/**
+	* initilize the progress bar context value, it include the xUnit/yUnit/xMargin/yMargin
+	* the child classes should implement the getStartTime()/getEndTime() !!
+	*/
+	this.init = function(_this){	
+		_this.context.yUnit = _this.context.h / _this.context.yCount;
+
+		_this.context.xMargin = _this.context.yUnit / 2;
+		_this.context.yMargin = _this.context.yUnit;
 		
-		var xRMargin = this.yUnit / 2;
+		var xRMargin = _this.context.yUnit / 2;
 		//if((this.eetTime - this.rtlTime) == 0) xRMargin = this.yUnit * 2;
 		
-		var timeRange = endTime - startTime;
-		this.xUnit = (this.w -  this.xMargin - xRMargin) / timeRange;
-	}
-}
-
-function DefaultProgressBar(context){
-
-	this.init = function(){	
-		return 	function(){
-			this.context.resetXY(this.getStartTime(), this.getEndTime());
-			return this;
-		}
+		var timeRange = _this.getFinishTime() - _this.getBeginTime();
+		_this.context.xUnit = (_this.context.w -  _this.context.xMargin - xRMargin) / timeRange;
+		
+		return _this;
 	}
 
-	this.getTimerBars = function(){
-		return 	function(){
-			var r = [];
-			var x = 0; var y = 0;
-			
-			var startTime = this.getStartTime();
-			var endTime = this.getEndTime();
-			
-			var tWidth = this.context.w / 3;
-			var x1 = x + this.context.xMargin;
-			var y1 = y + this.context.yMargin * 2;
-			r.push(new TimerBar(this.context, "startTime", startTime, x1, y1, tWidth, this.context.yUnit));
-			
-			var s2 = (endTime - startTime) * this.context.xUnit;
-			var x2 = x1 + s2;
-			var y2 = y1;
-			r.push(new TimerBar(this.context, "endTime", endTime, x2, y2, tWidth, this.context.yUnit));
-			
-			return r;
-		}
-	}
-}
-/*
-function RunningProgressBar(context, smtTime, stTime, ctTime, eetTime, rtlTime){
-	this.context = context;
-	this.smtTime = smtTime;
-	this.stTime = stTime;
-	this.ctTime = ctTime;
-	this.eetTime = eetTime;
-	this.rtlTime = rtlTime;
-	
-	this.getStartTime = function(){
-		return this.smtTime;
-	}
-	
-	this.getEndTime = function(){
-		var r = this.eetTime;
-		if(this.rtlTime != null && this.eetTime <= this.rtlTime){
-			r = this.rtlTime;
-		}
-		return r;
-	}
-	
-	this.init = function(){
-		this.context.resetXY(this.getStartTime(), this.getEndTime());
-		return this;
-	}
-	
-	this.getProgressers = function(){
+	this.getTimerBars = function(_this){
 		var r = [];
-		var x = 0; var y = 0;
+		var x = (_this.getStartTime() - _this.getBeginTime()) * _this.context.xUnit; 
+		var y = 0;
+		var w = (_this.getEndTime() - _this.getStartTime()) * _this.context.xUnit;
 		
-		//from smtTime to stTime
-		var x1 = x + this.context.xMargin;
-		var y1 = y + this.context.yMargin;
-		var r1 = (this.stTime - this.smtTime) * this.context.xUnit;
-		r.push(new ProgresserBreakLine(this.context, this.smtTime, this.stTime, x1, y1, COLOR_YELLOW, "Pending Duration"));
-		
-		//from stTime to ctTime
-		var x2 = x1 + r1; 
+		//showing the start time
+		var tWidth = w / 3;
+		var x1 = x + _this.context.xMargin;
+		var y1 = y + _this.context.yMargin * 2;
+		r.push(new TimerBar(_this.context, "startTime", _this.getStartTime(), x1, y1, tWidth, _this.context.yUnit));
+
+		//showing the end time
+		var x2 = x1 + w;
 		var y2 = y1;
-		var r2 = (this.ctTime - this.stTime) * this.context.xUnit;
-		r.push(new Progresser(this.context, this.stTime, this.ctTime, x2, y2, COLOR_GREEN, "Running Duration"));
-		
-		//from ctTime to eetTime
-		var x3 = x2 + r2; 
-		var y3 = y2;
-		var r3 = (this.eetTime - this.ctTime) * this.context.xUnit;
-		r.push(new Progresser(this.context, this.ctTime, this.eetTime, x3, y3, COLOR_GRAY));
-				
-		if(this.eetTime < this.rtlTime){
-			//from estTime to ptlTime
-			var x4 = x3 + r3; 
-			var y4 = y3;
-			var r4 = (this.rtlTime - this.eetTime) * this.context.xUnit;
-			r.push(new BreakLine(this.context, this.eetTime, this.rtlTime, x4, y4));
-		}
-		
-		return r;
-	}
-	
-	this.getTimers = function(){
-		var r = [];
-		var x = 0; var y = 0; 
-		
-		//smtTime
-		if(this.smtTime){
-			var x1 = x + this.context.xMargin; 
-			var y1 = y + this.context.yMargin;
-			r.push(new Timer(this.context, "SMT", this.smtTime, x1, y1, COLOR_GRAY));
-		}
-		
-		//stTime
-		if(this.stTime){
-			var s2 = (this.stTime - this.smtTime) * this.context.xUnit;
-			var x2 = x1 + s2; 
-			var y2 = y1;
-			r.push(new Timer(this.context, "ST", this.stTime, x2, y2, COLOR_GRAY));
-		}
-		
-		//ctTime
-		if(this.ctTime){
-			var s3 = (this.ctTime - this.smtTime) * this.context.xUnit;
-			var x3 = x1 + s3; 
-			var y3 = y2;
-			r.push(new Timer(this.context, "CT", this.ctTime, x3, y3, COLOR_GREEN));
-		}
-		
-		if((this.eetTime - this.rtlTime) != 0){
-			//eetTime
-			if(this.eetTime){
-				var s4 = (this.eetTime - this.smtTime) * this.context.xUnit;
-				var x4 = x1 + s4; 
-				var y4 = y3;
-				r.push(new Timer(this.context, "EET", this.eetTime, x4, y4, COLOR_GRAY));
-			}
-			
-			//rtlTime
-			if(this.rtlTime){
-				var s5 = (this.rtlTime - this.smtTime) * this.context.xUnit;
-				var x5 = x1 + s5; 
-				var y5 = y4;
-				r.push(new Timer(this.context, "RTL", this.rtlTime, x5, y5, COLOR_RED));
-			}
-		}else{
-			//eetTime & rtlTime
-			if(this.rtlTime){
-				var s5 = (this.rtlTime - this.smtTime) * this.context.xUnit;
-				var x5 = x1 + s5; 
-				var y5 = y2;
-				r.push(new DoubleTimer(this.context, "EET=RTL", this.rtlTime, x5, y5, COLOR_GRAY, COLOR_RED));
-			}
-		}
-		return r;
-	}
-	
-	this.getTimerBars = function(){
-		var r = [];
-		var x = 0; var y = 0;
-		
-		var startTime = this.getStartTime();
-		var endTime = this.getEndTime();
-		
-		var tWidth = this.context.w / 3;
-		var x1 = x + this.context.xMargin;
-		var y1 = y + this.context.yMargin * 2;
-		r.push(new TimerBar(this.context, "startTime", startTime, x1, y1, tWidth, this.context.yUnit));
-		
-		var s2 = (endTime - startTime) * this.context.xUnit;
-		var x2 = x1 + s2; 
-		var y2 = y1;
-		r.push(new TimerBar(this.context, "endTime", endTime, x2, y2, tWidth, this.context.yUnit));
+		r.push(new TimerBar(_this.context, "endTime", _this.getEndTime(), x2, y2, tWidth, _this.context.yUnit));
 		
 		return r;
 	}
 }
-*/
-
-/*
-function PendingProgressBar(context, smtTime, ctTime, estTime, ptlTime){
-	this.context = context;
-	this.smtTime = smtTime;
-	this.ctTime = ctTime;
-	this.estTime = estTime;
-	this.ptlTime = ptlTime;
-	
-	this.getStartTime = function(){
-		return this.smtTime;
-	}
-	
-	this.getEndTime = function(){
-		var r = this.estTime;
-		if(this.ptlTime != null && this.estTime <= this.ptlTime){
-			r = this.ptlTime;
-		}
-		return r;
-	}
-	
-	this.init = function(){
-		this.context.resetXY(this.getStartTime(), this.getEndTime());
-		return this;
-	}
-
-	this.getTimerBars = function(){
-		var r = [];
-		var x = 0; var y = 0;
-		
-		var startTime = this.getStartTime();
-		var endTime = this.getEndTime();
-		
-		var tWidth = this.context.w / 3;
-		var x1 = x + this.context.xMargin;
-		var y1 = y + this.context.yMargin * 2;
-		r.push(new TimerBar(this.context, "startTime", startTime, x1, y1, tWidth, this.context.yUnit));
-		
-		var s2 = (endTime - startTime) * this.context.xUnit;
-		var x2 = x1 + s2; 
-		var y2 = y1;
-		r.push(new TimerBar(this.context, "endTime", endTime, x2, y2, tWidth, this.context.yUnit));
-		
-		return r;
-	}
-	
-	this.getProgressers = function(){
-		var r = [];
-		var x = 0; var y = 0;
-		
-		//from smtTime to ctTime
-		var x1 = x + this.context.xMargin; 
-		var y1 = y + this.context.yMargin;
-		var r1 = (this.ctTime - this.smtTime) * this.context.xUnit;
-		r.push(new Progresser(this.context, this.smtTime, this.ctTime, x1, y1, COLOR_YELLOW, "Pending Duration"));
-		
-		//from ctTime to estTime
-		var x2 = x1 + r1; 
-		var y2 = y1;
-		var r2 = (this.estTime - this.ctTime) * this.context.xUnit;
-		r.push(new Progresser(this.context, this.ctTime, this.estTime, x2, y2, COLOR_GRAY));
-		
-		if(this.estTime < this.ptlTime){
-			//from estTime to ptlTime
-			var x3 = x2 + r2; 
-			var y3 = y2;
-			var r3 = (this.ptlTime - this.estTime) * this.context.xUnit;
-			r.push(new BreakLine(this.context, this.estTime, this.ptlTime, x3, y3));
-		}
-		
-		return r;
-	}
-	
-	this.getTimers = function(){
-		var r = [];
-		var x = 0; var y = 0;
-		
-		//smtTime
-		if(this.smtTime){
-			var x1 = x + this.context.xMargin; 
-			var y1 = y + this.context.yMargin;
-			r.push(new Timer(this.context, "SMT", this.smtTime, x1, y1, COLOR_GRAY));
-		}
-		
-		//ctTime
-		if(this.ctTime){
-			var s2 = (this.ctTime - this.smtTime) * this.context.xUnit;
-			var x2 = x1 + s2; 
-			var y2 = y1;
-			r.push(new Timer(this.context, "CT", this.ctTime, x2, y2, COLOR_YELLOW));
-		}
-		
-		if((this.estTime - this.ptlTime) != 0){
-			//estTime
-			if(this.estTime){
-				var s3 = (this.estTime - this.smtTime) * this.context.xUnit;
-				var x3 = x1 + s3; 
-				var y3 = y2;
-				r.push(new Timer(this.context, "EST", this.estTime, x3, y3, COLOR_GRAY));
-			}
-			
-			//ptlTime
-			if(this.ptlTime){
-				var s4 = (this.ptlTime - this.smtTime) * this.context.xUnit;
-				var x4 = x1 + s4; 
-				var y4 = y3;
-				r.push(new Timer(this.context, "PTL", this.ptlTime, x4, y4, COLOR_RED));
-			}
-		}else{
-			//estTime & ptlTime
-			if(this.ptlTime){
-				var s4 = (this.ptlTime - this.smtTime) * this.context.xUnit;
-				var x4 = x1 + s4; 
-				var y4 = y2;
-				r.push(new DoubleTimer(this.context, "EST=PTL", this.ptlTime, x4, y4, COLOR_GRAY, COLOR_RED));
-			}
-		}
-		return r;
-	}
-}
-*/
 
 function Tooltip(context, x, y, tooltip){
 	this.context = context; 
@@ -511,7 +259,7 @@ function BreakLine(context, startTime, endTime, x, y, tooltip){
 		var ls_x2 = this.x + this.width * lPercent;
 		var ls_y2 = ls_y1;
 		ls.attr("x1", ls_x1).attr("y1", ls_y1).attr("x2", ls_x2).attr("y2", ls_y2);
-		ls.attr("style", "stroke:" + COLOR_BLACK);
+		ls.attr("style", "stroke:" + this.context.colors.COLOR_BLACK);
 		
 		var l2 = this.context.svg.append("line");
 		var l2_x1 = ls_x2 - xHeight;
@@ -519,7 +267,7 @@ function BreakLine(context, startTime, endTime, x, y, tooltip){
 		var l2_x2 = ls_x2 + xHeight;
 		var l2_y2 = ls_y2 - yHeight;
 		l2.attr("x1", l2_x1).attr("y1", l2_y1).attr("x2", l2_x2).attr("y2", l2_y2);
-		l2.attr("style", "stroke:" + COLOR_BLACK);
+		l2.attr("style", "stroke:" + this.context.colors.COLOR_BLACK);
 
 		//line end
 		var le = this.context.svg.append("line");
@@ -528,7 +276,7 @@ function BreakLine(context, startTime, endTime, x, y, tooltip){
 		var le_x2 = this.x + this.width;
 		var le_y2 = le_y1;
 		le.attr("x1", le_x1).attr("y1", le_y1).attr("x2", le_x2).attr("y2", le_y2);
-		le.attr("style", "stroke:" + COLOR_BLACK);
+		le.attr("style", "stroke:" + this.context.colors.COLOR_BLACK);
 		
 		var l3 = this.context.svg.append("line");
 		var l3_x1 = le_x1 - xHeight;
@@ -536,7 +284,7 @@ function BreakLine(context, startTime, endTime, x, y, tooltip){
 		var l3_x2 = le_x1 + xHeight;
 		var l3_y2 = le_y1 - yHeight;
 		l3.attr("x1", l3_x1).attr("y1", l3_y1).attr("x2", l3_x2).attr("y2", l3_y2);
-		l3.attr("style", "stroke:" + COLOR_BLACK);
+		l3.attr("style", "stroke:" + this.context.colors.COLOR_BLACK);
 	}
 	
 	this.toHtml = function(){
@@ -584,8 +332,8 @@ function Timer(context, name, time, x, y, color){
 	this.y = y;
 	this.color = color;
 	
-	this.width = this.context.yUnit / 4;
-	this.height = this.context.yUnit / 4;
+	this.width = this.context.yUnit / 3;
+	this.height = this.context.yUnit / 3;
 	
 	this.show = function(){
 		var p = this.context.svg.append("polygon");
@@ -596,26 +344,25 @@ function Timer(context, name, time, x, y, color){
 		var p_x3 = this.x;
 		var p_y3 = this.y;
 		p.attr("points", (p_x1 + "," + p_y1) + " " + (p_x2 + "," + p_y2) + " " + (p_x3 + "," + p_y3));
-		p.attr("style", "fill:" + this.color + ";stroke:" + COLOR_BLACK + ";stroke-width:1");
+		p.style("fill", this.color).style("stroke", this.color).style("stroke-width", 1);
 		
 		//attach the mouse event
 		if(this.name != ""){
 			//console.log(this.name + " | " + this.time);
-			var t = this.context.constants.get(this.name);
+			var t = this.context.i18n.get(this.name);
 			var format = d3.time.format("%Y-%m-%d %H:%M:%S");
 			var tp = new Tooltip(this.context, this.x, this.y, t.wholeName + " " + format(this.time));
 			tp.attach(p);
 		}
 		
 		if(this.context.showTimerName == true){
-			var tWidth = this.width + this.width / 2;
-			var tHeight = this.height + this.height / 2;
-			
 			var t = this.context.svg.append("text");
-			var t_x = this.x - tWidth;
-			var t_y = this.y - tHeight;
+			var t_x = this.x - this.width - this.width / 2;
+			var t_y = this.y - this.height - this.height / 2;
 			var t_s = this.height * 2 + "px";
-			t.attr("x", t_x).attr("y", t_y).attr("style", "font-size:" + t_s + ";fill:black").text(this.name);		
+			t.attr("x", t_x).attr("y", t_y);
+			t.style("font-size", t_s).style("fill", this.context.colors.COLOR_BLACK)
+			t.text(this.name);		
 		}
 		
 		var l = this.context.svg.append("line");
@@ -624,7 +371,7 @@ function Timer(context, name, time, x, y, color){
 		var l_x2 = l_x1;
 		var l_y2 = l_y1 + this.context.yUnit;
 		l.attr("x1", l_x1).attr("y1", l_y1).attr("x2", l_x2).attr("y2", l_y2);
-		l.attr("style", "stroke:" + COLOR_BLACK);
+		l.style("stroke", this.context.colors.COLOR_GRAY);
 	}
 	
 	this.toHtml = function(){
@@ -646,25 +393,32 @@ function TimerBar(context, name, time, x, y){
 	this.height = this.context.h - this.y;
 		
 	this.show = function(){
-		var offset = 4;
-		var rx = this.x;
-		var ry = this.y + offset;
+		var offset = 6;
 		
-		var l = this.context.svg.append("line");
-		l.attr("x1", this.x).attr("y1", this.y).attr("x2", rx).attr("y2", ry);
-		l.attr("style", "stroke:" + COLOR_GRAY);
-
-		if(this.name == "endTime") rx = this.x - this.width;	
+		//draw a poly line
+		var l = this.context.svg.append("polyline");
+		var point0 = this.x + "," + this.y;
+		var point1 = this.x + "," + (this.y + this.height / 2);
+		var point2 = (this.x + offset) + "," + (this.y + this.height / 2);
+		if(this.name == "endTime") point2 = (this.x - offset) + "," + (this.y + this.height / 2);
+		l.attr("points", point0 + " " + point1 + " " + point2);
+		l.style("fill", "none").style("stroke", this.context.colors.COLOR_GRAY).style("stroke-width", 1);
+		
+		//draw the rect
 		var r = this.context.svg.append("rect");
+		var rx = this.x + offset;
+		var ry = this.y + offset;
+		if(this.name == "endTime") rx = this.x - this.width - offset;
 		r.attr("x", rx).attr("y", ry).attr("width", this.width).attr("height", this.height - offset * 2)
-		r.style("fill", COLOR_WHITE).style("fill-opacity", 0.8).style("stroke", COLOR_GRAY);
+		r.style("fill", this.context.colors.COLOR_WHITE).style("fill-opacity", 0.8).style("stroke", this.context.colors.COLOR_GRAY);
 		
+		//draw the time stamp
 		var t = this.context.svg.append("text");
 		var tx = rx + (this.width / 2);
 		var ty = ry + (this.height / 2);	
 		var ts = this.height * 0.3 + "px";
-		t.attr("x", tx).attr("y", ty).attr("width", this.width).attr("height", this.height).style("text-anchor", "middle");
-		t.style("font-size", ts);
+		t.attr("x", tx).attr("y", ty).attr("width", this.width).attr("height", this.height)
+		t.style("text-anchor", "middle").style("font-size", ts);
 		
 		var format = d3.time.format("%Y-%m-%d %H:%M:%S");
 		t.text(format(this.time));
