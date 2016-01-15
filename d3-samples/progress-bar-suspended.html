@@ -6,27 +6,18 @@
 		<link rel="stylesheet" type="text/css" href="./css/progress-bar.css"/>
 		
 		<!-- special progress bar javascript file -->
-		<script src="./js/progress-bar-suspended-pending.js" charset="utf-8"></script>
+		<script src="./js/progress-bar-suspended.js" charset="utf-8"></script>
 	</head>
 		
 	<body>
-		
 		<table>
 			<tr>
-				<th>20PX</th>
-				<td><div id="div0" style="width:500px;height:20px"/></td>
+				<th>Suspended (while pending)</th>
+				<td><div id="div0" style="width:500px;height:80px"/></td>
 			</tr>
 			<tr>
-				<th>40PX</th>
-				<td><div id="div1" style="width:500px;height:40px"/></td>
-			</tr>
-			<tr>
-				<th>60PX</th>
-				<td><div id="div2" style="width:500px;height:60px"/></td>
-			</tr>
-			<tr>
-				<th>80PX</th>
-				<td><div id="div3" style="width:500px;height:80px"/></td>
+				<th>Suspended (while running)</th>
+				<td><div id="div1" style="width:500px;height:80px"/></td>
 			</tr>
 		</table>
 		
@@ -34,42 +25,30 @@
 		<script>
 			function showCase0(){			
 				var smtTime = new Date("2015-12-31T00:00:00.0000Z");
+				var stTime  = null;
 				var sptTime = new Date("2015-12-31T00:59:00.0000Z");
 				
+				//initialize the context
 				var container = d3.select("#div0");
-				showProgressBar(container, smtTime, sptTime);
+				showProgressBar(container, smtTime, stTime, sptTime);
 			}
 			
 			function showCase1(){			
 				var smtTime = new Date("2015-12-31T00:00:00.0000Z");
+				var stTime  = new Date("2015-12-31T00:20:00.0000Z");
 				var sptTime = new Date("2015-12-31T00:59:00.0000Z");
 				
+				//initialize the context
 				var container = d3.select("#div1");
-				showProgressBar(container, smtTime, sptTime);
-			}
-
-			function showCase2(){			
-				var smtTime = new Date("2015-12-31T00:00:00.0000Z");
-				var sptTime = new Date("2015-12-31T00:59:00.0000Z");
-				
-				var container = d3.select("#div2");
-				showProgressBar(container, smtTime, sptTime);
+				showProgressBar(container, smtTime, stTime, sptTime);
 			}
 			
-			function showCase3(){
-				var smtTime = new Date("2015-12-31T00:00:00.0000Z");
-				var sptTime = new Date("2015-12-31T00:59:00.0000Z");
-				
-				var container = d3.select("#div3");
-				showProgressBar(container, smtTime, sptTime);
-			}
-			
-			function showProgressBar(container, smtTime, sptTime){
+			function showProgressBar(container, smtTime, stTime, sptTime){
 				//initialize the context
 				var context = new ProgressBarContext(container);
 				
 				//initilize the progress bar object
-				var progressBar = new SuspendedPendingProgressBar(context, smtTime, sptTime).init();
+				var progressBar = new SuspendedProgressBar(context, smtTime, stTime, sptTime).init();
 				
 				//show all of the progressers
 				var progressers = progressBar.getProgressers();
@@ -87,8 +66,6 @@
 			function main(){
 				showCase0();
 				showCase1();
-				showCase2();
-				showCase3();
 			}
 			main()
 		</script>

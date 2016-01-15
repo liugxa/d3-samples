@@ -1,4 +1,4 @@
-function SuspendedRunningProgressBar(context, smtTime, stTime, sptTime){
+function SuspendedProgressBar(context, smtTime, stTime, sptTime){
 	this.context = context;
 	this.smtTime = smtTime;
 	this.stTime = stTime;
@@ -17,7 +17,9 @@ function SuspendedRunningProgressBar(context, smtTime, stTime, sptTime){
 	}
 	
 	this.getStartTime = function(){
-		return this.stTime;
+		var r = this.smtTime;
+		if(this.stTime != null) r = this.stTime;
+		return r;		
 	}
 	
 	this.getEndTime = function(){
@@ -32,18 +34,28 @@ function SuspendedRunningProgressBar(context, smtTime, stTime, sptTime){
 		var r = [];
 		var x = 0; var y = 0;
 		
-		//from smtTime to stTime
-		var x1 = x + this.context.xMargin; 
-		var y1 = y + this.context.yMargin;
-		var r1 = (this.stTime - this.smtTime) * this.context.xUnit;
-		r.push(new ProgresserBreakLine(this.context, this.smtTime, this.stTime, x1, y1, this.context.colors.COLOR_PENDING, "Pending Duration"));
-		
-		//from stTime to sptTime
-		var x2 = x1 + r1; 
-		var y2 = y1;
-		var r2 = (this.sptTime - this.stTime) * this.context.xUnit;
-		r.push(new Progresser(this.context, this.stTime, this.sptTime, x2, y2, this.context.colors.COLOR_SUSPENDED));
-		
+		if(this.stTime){
+			//from smtTime to stTime
+			var x1 = x + this.context.xMargin; 
+			var y1 = y + this.context.yMargin;
+			var r1 = (this.stTime - this.smtTime) * this.context.xUnit;
+			var c1 = this.context.colors.COLOR_PENDING;
+			r.push(new ProgresserBreakLine(this.context, this.smtTime, this.stTime, x1, y1, c1, "Pending Duration"));
+			
+			//from stTime to sptTime
+			var x2 = x1 + r1; 
+			var y2 = y1;
+			var r2 = (this.sptTime - this.stTime) * this.context.xUnit;
+			var c2 = this.context.colors.COLOR_SUSPENDED;
+			r.push(new Progresser(this.context, this.stTime, this.sptTime, x2, y2, c2));
+		}else{
+			//from smtTime to sptTime
+			var x1 = x + this.context.xMargin; 
+			var y1 = y + this.context.yMargin;
+			var r1 = (this.sptTime - this.smtTime) * this.context.xUnit;
+			var c1 = this.context.colors.COLOR_SUSPENDED;
+			r.push(new Progresser(this.context, this.smtTime, this.sptTime, x1, y1, c1, "Pending Duration"));
+		}
 		return r;
 	}
 	
@@ -69,8 +81,8 @@ function SuspendedRunningProgressBar(context, smtTime, stTime, sptTime){
 		//sptTime
 		if(this.sptTime){
 			var s3 = (this.sptTime - this.smtTime) * this.context.xUnit;
-			var x3 = x1 + s3; 
-			var y3 = y2;
+			var x3 = x1 + s3;
+			var y3 = y1;
 			r.push(new Timer(this.context, "SPT", this.sptTime, x3, y3, this.context.colors.COLOR_PINK));
 		}
 		return r;

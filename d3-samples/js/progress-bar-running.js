@@ -23,13 +23,25 @@ function RunningProgressBar(context, smtTime, stTime, ctTime, eetTime, rtlTime){
 	}
 	
 	this.getEndTime = function(){
-		return this.eetTime;
+		var r = this.ctTime;
+		if(this.eetTime != null) {
+			r = this.eetTime;
+		}
+		return r;
 	}
 	
 	this.getFinishTime = function(){
-		var r = this.eetTime;
-		if(this.rtlTime != null && this.eetTime <= this.rtlTime){
-			r = this.rtlTime;
+		var r;
+		if(this.eetTime != null){
+			r = this.eetTime;
+			if(this.rtlTime != null && this.eetTime <= this.rtlTime){
+				r = this.rtlTime;
+			}		
+		}else{
+			r = this.ctTime;
+			if(this.rtlTime != null && this.ctTime <= this.rtlTime){
+				r = this.rtlTime;
+			}
 		}
 		return r;
 	}
@@ -42,28 +54,41 @@ function RunningProgressBar(context, smtTime, stTime, ctTime, eetTime, rtlTime){
 		var x1 = x + this.context.xMargin;
 		var y1 = y + this.context.yMargin;
 		var r1 = (this.stTime - this.smtTime) * this.context.xUnit;
-		r.push(new ProgresserBreakLine(this.context, this.smtTime, this.stTime, x1, y1, this.context.colors.COLOR_PENDING, "Pending Duration"));
+		var c1 = this.context.colors.COLOR_PENDING;
+		r.push(new ProgresserBreakLine(this.context, this.smtTime, this.stTime, x1, y1, c1, "Pending Duration"));
 		
 		//from stTime to ctTime
 		var x2 = x1 + r1; 
 		var y2 = y1;
 		var r2 = (this.ctTime - this.stTime) * this.context.xUnit;
-		r.push(new Progresser(this.context, this.stTime, this.ctTime, x2, y2, this.context.colors.COLOR_RUNNING, "Running Duration"));
+		var c2 = this.context.colors.COLOR_RUNNING;
+		r.push(new Progresser(this.context, this.stTime, this.ctTime, x2, y2, c2, "Running Duration"));
 		
-		//from ctTime to eetTime
-		var x3 = x2 + r2; 
-		var y3 = y2;
-		var r3 = (this.eetTime - this.ctTime) * this.context.xUnit;
-		r.push(new Progresser(this.context, this.ctTime, this.eetTime, x3, y3, this.context.colors.COLOR_HOLD));
-				
-		if(this.eetTime < this.rtlTime){
-			//from estTime to ptlTime
-			var x4 = x3 + r3; 
-			var y4 = y3;
-			var r4 = (this.rtlTime - this.eetTime) * this.context.xUnit;
-			r.push(new BreakLine(this.context, this.eetTime, this.rtlTime, x4, y4));
+		if(this.eetTime){
+			//from ctTime to eetTime
+			var x3 = x2 + r2; 
+			var y3 = y1;
+			var r3 = (this.eetTime - this.ctTime) * this.context.xUnit;
+			var c3 = this.context.colors.COLOR_HOLD;
+			r.push(new Progresser(this.context, this.ctTime, this.eetTime, x3, y3, c3));
+			
+			//from eetTime to rtlTime
+			if(this.rtlTime != null && this.eetTime < this.rtlTime){
+				//from estTime to ptlTime
+				var x4 = x3 + r3; 
+				var y4 = y1;
+				var r4 = (this.rtlTime - this.eetTime) * this.context.xUnit;
+				r.push(new BreakLine(this.context, this.eetTime, this.rtlTime, x4, y4));
+			}
+		}else{
+			if(this.rtlTime){
+				//from ctTime to rtlTime
+				var x3 = x2 + r2; 
+				var y3 = y1;
+				var r3 = (this.eetTime - this.ctTime) * this.context.xUnit;
+				r.push(new BreakLine(this.context, this.ctTime, this.rtlTime, x3, y3));
+			}
 		}
-		
 		return r;
 	}
 	
@@ -90,34 +115,24 @@ function RunningProgressBar(context, smtTime, stTime, ctTime, eetTime, rtlTime){
 		if(this.ctTime){
 			var s3 = (this.ctTime - this.smtTime) * this.context.xUnit;
 			var x3 = x1 + s3; 
-			var y3 = y2;
+			var y3 = y1;
 			r.push(new Timer(this.context, "CT", this.ctTime, x3, y3, this.context.colors.COLOR_GREEN));
 		}
 		
-		if((this.eetTime - this.rtlTime) != 0){
-			//eetTime
-			if(this.eetTime){
-				var s4 = (this.eetTime - this.smtTime) * this.context.xUnit;
-				var x4 = x1 + s4; 
-				var y4 = y3;
-				r.push(new Timer(this.context, "EET", this.eetTime, x4, y4, this.context.colors.COLOR_GRAY));
-			}
-			
-			//rtlTime
-			if(this.rtlTime){
-				var s5 = (this.rtlTime - this.smtTime) * this.context.xUnit;
-				var x5 = x1 + s5; 
-				var y5 = y4;
-				r.push(new Timer(this.context, "RTL", this.rtlTime, x5, y5, this.context.colors.COLOR_RED));
-			}
-		}else{
-			//eetTime & rtlTime
-			if(this.rtlTime){
-				var s5 = (this.rtlTime - this.smtTime) * this.context.xUnit;
-				var x5 = x1 + s5; 
-				var y5 = y2;
-				r.push(new DoubleTimer(this.context, "EET=RTL", this.rtlTime, x5, y5, this.context.colors.COLOR_GRAY, this.context.colors.COLOR_RED));
-			}
+		//eetTime
+		if(this.eetTime){
+			var s4 = (this.eetTime - this.smtTime) * this.context.xUnit;
+			var x4 = x1 + s4; 
+			var y4 = y1;
+			r.push(new Timer(this.context, "EET", this.eetTime, x4, y4, this.context.colors.COLOR_GRAY));
+		}
+				
+		//rtlTime
+		if(this.rtlTime){
+			var s5 = (this.rtlTime - this.smtTime) * this.context.xUnit;
+			var x5 = x1 + s5; 
+			var y5 = y1;
+			r.push(new Timer(this.context, "RTL", this.rtlTime, x5, y5, this.context.colors.COLOR_RED));
 		}
 		return r;
 	}

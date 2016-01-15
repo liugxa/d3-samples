@@ -27,6 +27,14 @@
 				<th>Running (EET &gt; RTL)</th>
 				<td><div id="div3" style="width:500px;height:80px"/></td>
 			</tr>
+			<tr>
+				<th>Running (no EET, no RTL)</th>
+				<td><div id="div4" style="width:500px;height:80px"/></td>
+			</tr>
+			<tr>
+				<th>Running (no EET, CT &lt; RTL)</th>
+				<td><div id="div5" style="width:500px;height:80px"/></td>
+			</tr>			
 		</table>
 
 		<script>
@@ -74,6 +82,28 @@
 				showProgressBar(container, smtTime, stTime, ctTime, eetTime, rtlTime);
 			}
 			
+			function showCase4(){
+				var smtTime = new Date("2015-12-31T00:00:00.0000Z");
+				var stTime  = new Date("2015-12-31T00:10:00.0000Z");
+				var ctTime  = new Date("2015-12-31T00:40:00.0000Z");
+				var eetTime = null;
+				var rtlTime = null;
+				
+				var container = d3.select("#div4");
+				showProgressBar(container, smtTime, stTime, ctTime, eetTime, rtlTime);
+			}
+			
+			function showCase5(){
+				var smtTime = new Date("2015-12-31T00:00:00.0000Z");
+				var stTime  = new Date("2015-12-31T00:10:00.0000Z");
+				var ctTime  = new Date("2015-12-31T00:40:00.0000Z");
+				var eetTime = null;
+				var rtlTime = new Date("2015-12-31T00:50:00.0000Z");
+				
+				var container = d3.select("#div5");
+				showProgressBar(container, smtTime, stTime, ctTime, eetTime, rtlTime);
+			}
+			
 			function showProgressBar(container, smtTime, stTime, ctTime, eetTime, rtlTime){
 				//initialize the context
 				var context = new ProgressBarContext(container);
@@ -100,6 +130,8 @@
 				showCase1();
 				showCase2();
 				showCase3();
+				showCase4();
+				showCase5();
 			}
 			main()
 		</script>

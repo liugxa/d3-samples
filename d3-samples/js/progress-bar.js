@@ -78,6 +78,7 @@ function DefaultProgressBar(){
 
 		_this.context.xMargin = _this.context.yUnit / 2;
 		_this.context.yMargin = _this.context.yUnit;
+		if(_this.showTimerName != true) _this.context.yMargin = _this.context.yUnit * 0.6;
 		
 		var xRMargin = _this.context.yUnit / 2;
 		//if((this.eetTime - this.rtlTime) == 0) xRMargin = this.yUnit * 2;
@@ -95,15 +96,14 @@ function DefaultProgressBar(){
 		var w = (_this.getEndTime() - _this.getStartTime()) * _this.context.xUnit;
 		
 		//showing the start time
-		var tWidth = w / 3;
 		var x1 = x + _this.context.xMargin;
-		var y1 = y + _this.context.yMargin * 2;
-		r.push(new TimerBar(_this.context, "startTime", _this.getStartTime(), x1, y1, tWidth, _this.context.yUnit));
+		var y1 = y + _this.context.yMargin + _this.context.yUnit;
+		r.push(new TimerBar(_this.context, "startTime", _this.getStartTime(), x1, y1));
 
 		//showing the end time
 		var x2 = x1 + w;
 		var y2 = y1;
-		r.push(new TimerBar(_this.context, "endTime", _this.getEndTime(), x2, y2, tWidth, _this.context.yUnit));
+		r.push(new TimerBar(_this.context, "endTime", _this.getEndTime(), x2, y2));
 		
 		return r;
 	}
@@ -167,7 +167,8 @@ function Progresser(context, startTime, endTime, x, y , color, tooltip){
 		var format = d3.time.format("%H %M %S");
 		
 		if(this.tooltip) {
-			var tp = new Tooltip(this.context, this.x, this.y, this.tooltip + "\n" + this.formatDuration(durationDate));
+			var tMessage = this.tooltip + ": \r\n " + this.formatDuration(durationDate);
+			var tp = new Tooltip(this.context, this.x, this.y, tMessage);
 			tp.attach(r);
 		}
 	}
@@ -310,7 +311,7 @@ function DoubleTimer(context, name, time, x, y, color1, color2){
 		timer1.show();
 		
 		var t2_x = t1_x;
-		var t2_y = t1_y - timer1.height;
+		var t2_y = t1_y - timer1.height / 4;
 		var timer2 = new Timer(this.context, this.name, this.time, t2_x, t2_y, this.color2);
 		timer2.show();
 	}
@@ -332,10 +333,14 @@ function Timer(context, name, time, x, y, color){
 	this.y = y;
 	this.color = color;
 	
-	this.width = this.context.yUnit / 3;
-	this.height = this.context.yUnit / 3;
+	this.width = this.context.yUnit * 0.3;
+	this.height = this.context.yUnit * 0.3;
 	
 	this.show = function(){
+		var yOffset = 0;
+		if(this.color == this.context.colors.COLOR_RED) yOffset = this.height;
+		this.y = this.y - yOffset;
+		
 		var p = this.context.svg.append("polygon");
 		var p_x1 = this.x - this.width;
 		var p_y1 = this.y - this.height;
@@ -351,7 +356,9 @@ function Timer(context, name, time, x, y, color){
 			//console.log(this.name + " | " + this.time);
 			var t = this.context.i18n.get(this.name);
 			var format = d3.time.format("%Y-%m-%d %H:%M:%S");
-			var tp = new Tooltip(this.context, this.x, this.y, t.wholeName + " " + format(this.time));
+			
+			var tMessage = t.wholeName + ": \r\n " + format(this.time);
+			var tp = new Tooltip(this.context, this.x, this.y, tMessage);
 			tp.attach(p);
 		}
 		
@@ -369,7 +376,7 @@ function Timer(context, name, time, x, y, color){
 		var l_x1 = this.x;
 		var l_y1 = this.y;
 		var l_x2 = l_x1;
-		var l_y2 = l_y1 + this.context.yUnit;
+		var l_y2 = l_y1 + this.context.yUnit + yOffset;
 		l.attr("x1", l_x1).attr("y1", l_y1).attr("x2", l_x2).attr("y2", l_y2);
 		l.style("stroke", this.context.colors.COLOR_GRAY);
 	}
@@ -388,13 +395,12 @@ function TimerBar(context, name, time, x, y){
 	
 	this.x = x; 
 	this.y = y;
-
-	this.width = this.context.w / 4;
-	this.height = this.context.h - this.y;
+	
+	var offset = 6;
+	this.width = this.context.w / 6;
+	this.height = this.context.h - this.y - offset * 2;
 		
 	this.show = function(){
-		var offset = 6;
-		
 		//draw a poly line
 		var l = this.context.svg.append("polyline");
 		var point0 = this.x + "," + this.y;
@@ -409,18 +415,24 @@ function TimerBar(context, name, time, x, y){
 		var rx = this.x + offset;
 		var ry = this.y + offset;
 		if(this.name == "endTime") rx = this.x - this.width - offset;
-		r.attr("x", rx).attr("y", ry).attr("width", this.width).attr("height", this.height - offset * 2)
+		r.attr("x", rx).attr("y", ry).attr("width", this.width).attr("height", this.height)
 		r.style("fill", this.context.colors.COLOR_WHITE).style("fill-opacity", 0.8).style("stroke", this.context.colors.COLOR_GRAY);
 		
-		//draw the time stamp
-		var t = this.context.svg.append("text");
-		var tx = rx + (this.width / 2);
-		var ty = ry + (this.height / 2);	
-		var ts = this.height * 0.3 + "px";
-		t.attr("x", tx).attr("y", ty).attr("width", this.width).attr("height", this.height)
-		t.style("text-anchor", "middle").style("font-size", ts);
+		//draw the time
+		var tfont = this.height * 0.35 + "px";
+		var t1 = this.context.svg.append("text");
+		var t1_x = rx + (this.width / 10);
+		var t1_y = ry + (this.height * 2 / 5);
+		var format = d3.time.format("%Y-%m-%d");
+		t1.attr("x", t1_x).attr("y", t1_y).attr("width", this.width).attr("height", this.height).text(format(this.time));
+		t1.style("font-size", tfont).style("font-style", "italic");
 		
-		var format = d3.time.format("%Y-%m-%d %H:%M:%S");
-		t.text(format(this.time));
+		//draw the stamp
+		var t = this.context.svg.append("text");
+		var tx = t1_x;
+		var ty = ry + (this.height * 4 / 5);	
+		var format = d3.time.format("%H:%M:%S");
+		t.attr("x", tx).attr("y", ty).attr("width", this.width).attr("height", this.height).text(format(this.time));
+		t.style("font-size", tfont).style("font-style", "italic");
 	}
 }
