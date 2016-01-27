@@ -3,10 +3,10 @@
 	<head>
 		<script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
 		<script src="./js/progress-bar.js" charset="utf-8"></script>
-		<link rel="stylesheet" type="text/css" href="./css/progress-bar.css"/>
-		
-		<!-- special progress bar javascript file -->
+		<script src="./js/progress-bar-all.js" charset="utf-8"></script>
 		<script src="./js/progress-bar-suspended.js" charset="utf-8"></script>
+		
+		<link rel="stylesheet" type="text/css" href="./css/progress-bar.css"/>
 	</head>
 		
 	<body>
@@ -23,44 +23,31 @@
 		
 		<!-- <div class="tooltip">Current Time: 2015-12-09 10:05:00</div> -->
 		<script>
-			function showCase0(){			
-				var smtTime = new Date("2015-12-31T00:00:00.0000Z");
-				var stTime  = null;
-				var sptTime = new Date("2015-12-31T00:59:00.0000Z");
-				
-				//initialize the context
-				var container = d3.select("#div0");
-				showProgressBar(container, smtTime, stTime, sptTime);
+			function showCase0(){
+				var times = {
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: null,
+					sptTime: new Date("2015-12-31T00:59:00.0000Z"),
+				}
+				showProgressBar("#div0", times);
 			}
 			
-			function showCase1(){			
-				var smtTime = new Date("2015-12-31T00:00:00.0000Z");
-				var stTime  = new Date("2015-12-31T00:20:00.0000Z");
-				var sptTime = new Date("2015-12-31T00:59:00.0000Z");
-				
-				//initialize the context
-				var container = d3.select("#div1");
-				showProgressBar(container, smtTime, stTime, sptTime);
+			function showCase1(){
+				var times = {			
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: new Date("2015-12-31T00:20:00.0000Z"),
+					sptTime: new Date("2015-12-31T00:59:00.0000Z"),
+				}
+				showProgressBar("#div1", times);
 			}
 			
-			function showProgressBar(container, smtTime, stTime, sptTime){
+			function showProgressBar(div, times){
 				//initialize the context
-				var context = new ProgressBarContext(container);
+				var context = new ProgressBarContext(d3.select(div));
 				
 				//initilize the progress bar object
-				var progressBar = new SuspendedProgressBar(context, smtTime, stTime, sptTime).init();
-				
-				//show all of the progressers
-				var progressers = progressBar.getProgressers();
-				for(var i=0;i<progressers.length;i++) progressers[i].show();
-				
-				//show all of the timers
-				var timers = progressBar.getTimers();
-				for(var i=0;i<timers.length;i++) timers[i].show();			
-				
-				//show all of the timer bars
-				var timerBars = progressBar.getTimerBars();
-				for(var i=0;i<timerBars.length;i++) timerBars[i].show();	
+				var progressBar = new ProgressBar(context, times, "suspended");
+				progressBar.show();
 			}
 			
 			function main(){

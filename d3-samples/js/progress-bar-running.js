@@ -97,6 +97,7 @@ function RunningProgressBar(context, smtTime, stTime, ctTime, eetTime, rtlTime){
 		var x = 0; var y = 0; 
 		
 		//smtTime
+		//don't showing the smtTime
 		if(this.smtTime){
 			var x1 = x + this.context.xMargin; 
 			var y1 = y + this.context.yMargin;

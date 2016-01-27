@@ -15,6 +15,9 @@ function Colors(){
 	this.COLOR_EXITED = "#b2293d";
 	this.COLOR_DONE = "#dddddd";
 	this.COLOR_HOLD = "#eeeef0";
+	
+	this.COLOR_TEXT_REGULAR = "#363636";
+	this.COLOR_TEXT_ITALIC = "#757575";
 }
 
 function I18n(){
@@ -69,11 +72,10 @@ function ProgressBarContext(container){
 	this.yMargin = -1;
 }
 
+/*
 function DefaultProgressBar(){
-	/**
-	* initilize the progress bar context value, it include the xUnit/yUnit/xMargin/yMargin
-	* the child classes should implement the getStartTime()/getEndTime() !!
-	*/
+	//initilize the progress bar context value, it include the xUnit/yUnit/xMargin/yMargin
+	// the child classes should implement the getStartTime()/getEndTime() !!
 	this.init = function(_this){	
 		_this.context.yUnit = _this.context.h / _this.context.yCount;
 
@@ -109,6 +111,7 @@ function DefaultProgressBar(){
 		return r;
 	}
 }
+*/
 
 function Tooltip(context, x, y, tooltip){
 	this.context = context; 
@@ -379,7 +382,7 @@ function Timer(context, name, time, x, y, color){
 		var l_x2 = l_x1;
 		var l_y2 = l_y1 + this.context.yUnit + yOffset;
 		l.attr("x1", l_x1).attr("y1", l_y1).attr("x2", l_x2).attr("y2", l_y2);
-		l.style("stroke", this.context.colors.COLOR_GRAY);
+		l.style("stroke", this.color);
 	}
 	
 	this.toHtml = function(){
@@ -397,55 +400,69 @@ function TimerBar(context, name, time, x, y){
 	this.x = x; 
 	this.y = y;
 	
-	var offset = 6;
-	this.width = this.context.w / 6;
-	this.height = this.context.h - this.y - offset * 2;
-		
-	this.show = function(){
+	this.w = this.context.w;
+	this.h = this.context.h - this.y;
+	
+	this.width = 70;
+	this.height = this.h * 0.6;
+	
+	this.xOffset = this.width / 8;
+	this.yOffset = this.height / 2;
+	
+	this.show = function(){	
 		//draw a poly line
 		var l = this.context.svg.append("polyline");
-		var point0 = this.x + "," + this.y;
-		var point1 = this.x + "," + (this.y + this.height / 2);
-		var point2 = (this.x + offset) + "," + (this.y + this.height / 2);
-		if(this.name == "endTime") point2 = (this.x - offset) + "," + (this.y + this.height / 2);
-		l.attr("points", point0 + " " + point1 + " " + point2);
-		l.style("fill", "none").style("stroke", this.context.colors.COLOR_GRAY).style("stroke-width", 1);
+		//point 1
+		var l1_x = this.x;
+		var l1_y = this.y;
+		//point 2
+		var l2_x = this.x;
+		var l2_y = this.y + this.yOffset;
+		//point 3
+		var l3_x = this.x + this.xOffset;
+		var l3_y = l2_y;
+		
+		if(this.name == "endTime") l3_x = this.x - this.xOffset;
+		l.attr("points", (l1_x + "," + l1_y)  + " " + (l2_x + "," + l2_y) + " " + (l3_x + "," + l3_y));
+		l.style("fill", "none").style("stroke", this.context.colors.COLOR_DARK_GRAY).style("stroke-width", 0.4);
 		
 		//draw the rect
 		var r = this.context.svg.append("rect");
-		var rx = this.x + offset;
-		var ry = this.y + offset;
-		if(this.name == "endTime") rx = this.x - this.width - offset;
-		r.attr("x", rx).attr("y", ry).attr("width", this.width).attr("height", this.height)
-		r.style("fill", this.context.colors.COLOR_WHITE).style("fill-opacity", 0.8).style("stroke", this.context.colors.COLOR_GRAY);
+		var rx = this.x + this.xOffset;
+		var ry = this.y;
+		if(this.name == "endTime") rx = this.x - this.width - this.xOffset;
+		//r.attr("x", rx).attr("y", ry).attr("width", this.width).attr("height", this.height)
+		//r.style("fill", this.context.colors.COLOR_WHITE).style("fill-opacity", 0.8).style("stroke", this.context.colors.COLOR_GRAY);
 		
 		//draw the time
-		var tfont = this.height * 0.35 + "px";
 		var t1 = this.context.svg.append("text");
-		var t1_x = rx + (this.width / 10);
-		var t1_y = ry + (this.height * 2 / 5);
+		var t1_x = rx;
+		var t1_y = ry + this.height / 2;
 		var format = d3.time.format("%Y-%m-%d");
+		var tfont = this.height * 0.4 + "px";
 		t1.attr("x", t1_x).attr("y", t1_y).attr("width", this.width).attr("height", this.height);
-		t1.style("font-size", tfont).text(format(this.time));
+		t1.style("font-size", tfont).style("font-family", "Arial").text(format(this.time));
 		if(this.name == "endTime") {
-			t1.attr("fill", this.context.colors.COLOR_DARK_GRAY);
+			t1.attr("fill", this.context.colors.COLOR_TEXT_ITALIC);
 			t1.style("font-style", "italic");
 		}else{
-			t1.attr("fill", this.context.colors.COLOR_BLACK);
+			t1.attr("fill", this.context.colors.COLOR_TEXT_REGULAR);
+			t1.style("font-weight", "bold");
 		}
 		
 		//draw the stamp
-		var t = this.context.svg.append("text");
-		var tx = t1_x;
-		var ty = ry + (this.height * 4 / 5);	
+		var t2 = this.context.svg.append("text");
+		var t2_x = t1_x;
+		var t2_y = t1_y + this.height / 2;
 		var format = d3.time.format("%H:%M:%S");
-		t.attr("x", tx).attr("y", ty).attr("width", this.width).attr("height", this.height);
-		t.style("font-size", tfont).text(format(this.time));
+		t2.attr("x", t2_x).attr("y", t2_y).attr("width", this.width).attr("height", this.height);
+		t2.style("font-size", tfont).style("font-family", "Arial").text(format(this.time));
 		if(this.name == "endTime") {
-			t.attr("fill", this.context.colors.COLOR_DARK_GRAY);
-			t.style("font-style", "italic");
+			t2.attr("fill", this.context.colors.COLOR_TEXT_ITALIC);
+			t2.style("font-style", "italic");
 		}else{
-			t.attr("fill", this.context.colors.COLOR_BLACK);
+			t2.attr("fill", this.context.colors.COLOR_TEXT_REGULAR);
+			t2.style("font-weight", "bold");
 		}
 	}
 }
