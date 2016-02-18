@@ -26,6 +26,14 @@
 			<tr>
 				<td><div id="div3" style="width:500px;height:80px"/></td>
 			</tr>
+			<tr><th>Pending (no EST, no PTL)</th></tr>
+			<tr>
+				<td><div id="div4" style="width:500px;height:80px"/></td>
+			</tr>
+			<tr><th>Pending (no EST, CT &lt; PTL)</th></tr>
+			<tr>
+				<td><div id="div5" style="width:500px;height:80px"/></td>
+			</tr>			
 		</table>
 		
 		<!-- <div class="tooltip">Current Time: 2015-12-09 10:05:00</div> -->
@@ -70,6 +78,26 @@
 				showProgressBar("#div3", times);
 			}
 
+			function showCase4(){
+				var times = {
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					ctTime: new Date("2015-12-31T00:30:00.0000Z"),
+					estTime: null,
+					ptlTime: null
+				}
+				showProgressBar("#div3", times);
+			}
+
+			function showCase5(){
+				var times = {
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					ctTime: new Date("2015-12-31T00:30:00.0000Z"),
+					estTime: null,
+					ptlTime: new Date("2015-12-31T00:59:00.0000Z")
+				}
+				showProgressBar("#div5", times);
+			}
+			
 			function showProgressBar(div, times){
 				//initialize the context
 				var context = new ProgressBarContext(d3.select(div));
@@ -84,6 +112,8 @@
 				showCase1();
 				showCase2();
 				showCase3();
+				showCase4();
+				showCase5();
 			}
 			main()
 		</script>

@@ -39,6 +39,154 @@ function I18n(){
 	}
 }
 
+function Duration(){
+	this.format = function(date){
+		var r = "";
+		
+		var y = date.getUTCFullYear() - 1970;
+		if(y != 0) r = r + y + "Y" + " ";
+		
+		var m = date.getUTCMonth();
+		if(m != 0) r = r + m + "m" + " ";
+		
+		var d = date.getUTCDate() - 1;
+		if(d != 0) r = r + d + "D" + " ";
+		
+		var h = date.getUTCHours();
+		if(h != 0) r = r + h + "H" + " ";
+		
+		var mi = date.getUTCMinutes();
+		if(mi != 0) r = r + mi + "M" + " ";
+		
+		var s = date.getUTCSeconds();
+		if(s != 0) r = r + s + "S" + " ";
+		
+		return r;
+	}
+}
+
+function ProgressBar(context, times, pStatus){
+	this.context = context;
+	this.times = times;
+	this.pStatus = pStatus.toUpperCase();
+	
+	this.checkTimes = function(){
+		var r = false;
+		switch(this.pStatus){
+			case "PENDING":
+				//pending: smtTime*/ctTime*/estTime/ptlTime
+				if(this.times.smtTime != null && this.times.ctTime != null) {
+					r = true;
+				}
+				break;
+			case "RUNNING":
+				//running: smtTime*/ctTime*/stTime/eetTime/rtlTime
+				if(this.times.smtTime != null && this.times.ctTime != null){
+					r = true;
+				}
+				break;
+			case "DONE":
+				//done: smtTime*/stTime*/etTime*		
+				if(this.times.smtTime != null && this.times.stTime != null && this.times.etTime != null){
+					r = true;
+				}
+				break;
+			case "EXIT":
+				//exited: smtTime*/stTime/etTime*
+				if(this.times.smtTime != null && this.times.etTime != null){
+					r = true;
+				}
+				break;
+			case "USUSP":
+			case "SSUSP":
+			case "PSUSP":
+				//suspended: smtTime*/stTime/sptTime*
+				if(this.times.smtTime != null && this.times.sptTime != null){
+					r = true;
+				}
+				break;
+		}
+		//console.log("check times[" + this.pStatus + "]: "+ r);
+		return r;
+	}
+	
+	this.show = function(){
+		if(this.checkTimes()){
+			var p = null;
+			switch(this.pStatus){
+				case "PENDING":
+					p = new PendingProgressBar(this.context, this.times.smtTime, this.times.ctTime, this.times.estTime, this.times.ptlTime);
+					break;
+				case "RUNNING":
+					p = new RunningProgressBar(this.context, this.times.smtTime, this.times.stTime, this.times.ctTime, this.times.eetTime, this.times.rtlTime);
+					break;
+				case "DONE":
+					p = new DoneProgressBar(this.context, this.times.smtTime, this.times.stTime, this.times.etTime);
+					break;
+				case "EXIT":
+					p = new ExitedProgressBar(this.context, this.times.smtTime, this.times.stTime, this.times.etTime);
+					break;
+				case "USUSP":
+				case "SSUSP":
+				case "PSUSP":
+					p = new SuspendedProgressBar(this.context, this.times.smtTime, this.times.stTime, this.times.sptTime);
+					break;
+			}
+			
+			if(p != null) {
+				//reset the xUnit of the context
+				//console.log("begin time: " + p.getBeginTime());
+				//console.log("finish time: " + p.getFinishTime());
+				var timeRange = p.getFinishTime() - p.getBeginTime();
+				this.context.xUnit = (this.context.w -  this.context.xMargin * 2) / timeRange;
+				
+				//show start bars
+				if(p.getStartBars != null) {
+				var startBars = p.getStartBars();
+					for(var i=0;i<startBars.length;i++) startBars[i].show();
+				}
+				
+				//show all of the progressers
+				var progressers = p.getProgressers();
+				for(var i=0;i<progressers.length;i++) progressers[i].show();
+				
+				//show all of the timers
+				var timers = p.getTimers();
+				for(var i=0;i<timers.length;i++) timers[i].show();			
+				
+				//show all of the timer bars
+				var timerBars = this.getTimerBars(p);
+				for(var i=0;i<timerBars.length;i++) timerBars[i].show();
+				
+				//show end bars
+				if(p.getEndBars != null){
+					//var endBars = p.getEndBars();
+					//for(var i=0;i<endBars.length;i++) endBars[i].show();
+				}
+			}
+		}
+	}
+	
+	this.getTimerBars = function(p){
+		var r = [];
+		var x = (p.getStartTime() - p.getBeginTime()) * this.context.xUnit; 
+		var y = 0;
+		var w = (p.getEndTime() - p.getStartTime()) * this.context.xUnit;
+		
+		//showing the start time
+		var x1 = x + this.context.xMargin;
+		var y1 = y + this.context.yMargin + this.context.yUnit;
+		r.push(new TimerBar(this.context, "startTime", p.getStartTime(), x1, y1));
+
+		//showing the end time
+		var x2 = x1 + w;
+		var y2 = y1;
+		r.push(new TimerBar(this.context, "endTime", p.getEndTime(), x2, y2));
+		
+		return r;
+	}	
+}
+
 function ProgressBarContext(container){
 	this.container = container;
 	
@@ -64,54 +212,18 @@ function ProgressBarContext(container){
 	/* the statistic colors */
 	this.colors = new Colors();
 	
+	/* the instance of duration */
+	this.duration = new Duration();
+	
 	//the 2 lays are capable of the size
 	this.yCount = (this.showTimerBar == true) ? 4 : 2;
 	this.xUnit = -1;
-	this.yUnit = -1;
-	this.xMargin = -1;
-	this.yMargin = -1;
+	this.yUnit = this.h / this.yCount;
+	
+	this.xMargin = this.yUnit;
+	this.yMargin = this.yUnit;
+	if(this.showTimerName != true) this.yMargin = this.yUnit * 0.6;
 }
-
-/*
-function DefaultProgressBar(){
-	//initilize the progress bar context value, it include the xUnit/yUnit/xMargin/yMargin
-	// the child classes should implement the getStartTime()/getEndTime() !!
-	this.init = function(_this){	
-		_this.context.yUnit = _this.context.h / _this.context.yCount;
-
-		_this.context.xMargin = _this.context.yUnit / 2;
-		_this.context.yMargin = _this.context.yUnit;
-		if(_this.showTimerName != true) _this.context.yMargin = _this.context.yUnit * 0.6;
-		
-		var xRMargin = _this.context.yUnit / 2;
-		//if((this.eetTime - this.rtlTime) == 0) xRMargin = this.yUnit * 2;
-		
-		var timeRange = _this.getFinishTime() - _this.getBeginTime();
-		_this.context.xUnit = (_this.context.w -  _this.context.xMargin - xRMargin) / timeRange;
-		
-		return _this;
-	}
-
-	this.getTimerBars = function(_this){
-		var r = [];
-		var x = (_this.getStartTime() - _this.getBeginTime()) * _this.context.xUnit; 
-		var y = 0;
-		var w = (_this.getEndTime() - _this.getStartTime()) * _this.context.xUnit;
-		
-		//showing the start time
-		var x1 = x + _this.context.xMargin;
-		var y1 = y + _this.context.yMargin + _this.context.yUnit;
-		r.push(new TimerBar(_this.context, "startTime", _this.getStartTime(), x1, y1));
-
-		//showing the end time
-		var x2 = x1 + w;
-		var y2 = y1;
-		r.push(new TimerBar(_this.context, "endTime", _this.getEndTime(), x2, y2));
-		
-		return r;
-	}
-}
-*/
 
 function Tooltip(context, x, y, tooltip){
 	this.context = context; 
@@ -146,18 +258,15 @@ function Tooltip(context, x, y, tooltip){
 	}
 }
 
-function Progresser(context, startTime, endTime, x, y , color, tooltip){
+function Progresser(context, x, y, width, color, tooltip){
 	this.context = context;
-	this.startTime = startTime;
-	this.endTime = endTime;
-
 	this.x = x;
 	this.y = y;
-
+	
 	this.color = color;	
 	this.tooltip = tooltip;
-
-	this.width = (this.endTime - this.startTime) * this.context.xUnit;
+	
+	this.width = width;
 	this.height = this.context.yUnit;
 		
 	//with an tooltip
@@ -167,92 +276,47 @@ function Progresser(context, startTime, endTime, x, y , color, tooltip){
 		r.attr("width", this.width).attr("height", this.height);
 		
 		//attach the mouse event
-		var durationDate = new Date(this.endTime - this.startTime);
-		var format = d3.time.format("%H %M %S");
-		
 		if(this.tooltip) {
-			var tMessage = this.tooltip + ": \r\n " + this.formatDuration(durationDate);
-			var tp = new Tooltip(this.context, this.x, this.y, tMessage);
+			var tp = new Tooltip(this.context, this.x, this.y, this.tooltip);
 			tp.attach(r);
 		}
 	}
-	
-	this.formatDuration = function(date){
-		var r = "";
-		
-		var y = date.getUTCFullYear() - 1970;
-		if(y != 0) r = r + y + "Y" + " ";
-		
-		var m = date.getUTCMonth();
-		if(m != 0) r = r + m + "m" + " ";
-		
-		var d = date.getUTCDate() - 1;
-		if(d != 0) r = r + d + "D" + " ";
-		
-		var h = date.getUTCHours();
-		if(h != 0) r = r + h + "H" + " ";
-		
-		var mi = date.getUTCMinutes();
-		if(mi != 0) r = r + mi + "M" + " ";
-		
-		var s = date.getUTCSeconds();
-		if(s != 0) r = r + s + "S" + " ";
-		
-		return r;
-	}
-	
-	this.toHtml = function(){
-		//<rect x="310" y="20" width="100" height="20" style="fill:rgb(230,230,230)"/>
-	}
 }
 
-function ProgresserBreakLine(context, startTime, endTime, x, y, color, tooltip){
+function ProgresserBreakLine(context, x, y, width, color, tooltip){
 	this.context = context;
-	this.startTime = startTime;
-	this.endTime = endTime;
-	
 	this.x = x; 
 	this.y = y;
 	
+	this.width = width;
 	this.color = color;
 	this.tooltip = tooltip;
 	
 	this.show = function(){
-		var duration = this.endTime - this.startTime;
-		var pMilliseconds = this.startTime.getTime() + duration * 0.4;
-		var pEndTime = new Date(pMilliseconds);
+		//var duration = this.endTime - this.startTime;
+		//var pMilliseconds = this.startTime.getTime() + duration * 0.4;
+		//var pEndTime = new Date(pMilliseconds);
 		
-		//console.log(this.x + "|" + this.y + "|" + this.xUnit + "|" + this.yUnit + "|" + this.color);
-		var progresser = new Progresser(this.context, this.startTime, pEndTime, this.x, this.y, this.color,this.tooltip);
+		var pWidth = this.width * 0.6;
+		var progresser = new Progresser(this.context, this.x, this.y, pWidth, this.color, this.tooltip);
 		progresser.show();
 		
-		//console.log(this.startTime + " | " + pEndTime + " | " + this.endTime);
-		var bX = (pEndTime - this.startTime) * this.context.xUnit;
-		var breakLine = new BreakLine(this.context, pEndTime, this.endTime, this.x + bX, this.y);
-		breakLine.show();
-	}
-	
-	this.toHtml = function(){
-		//<rect x="310" y="20" width="100" height="20" style="fill:rgb(230,230,230)"/>
+		var bWidth = this.width * 0.4;
+		var breakLine = new BreakLine(this.context, this.x + pWidth, this.y, bWidth);
+		//breakLine.show();
 	}
 }
 
-function BreakLine(context, startTime, endTime, x, y, tooltip){
+function BreakLine(context, x, y, width, tooltip){
 	this.context = context;
-	this.startTime = startTime;
-	this.endTime = endTime;
-	
 	this.x = x; 
 	this.y = y;
-	this.tooltip = tooltip;
 	
-	this.width = (this.endTime - this.startTime) * this.context.xUnit;
+	this.width = width;
+	this.tooltip = tooltip;
 	this.height = this.context.yUnit;
 		
 	this.show = function(){
-		var lPercent = 0.4;
-		var rPercent = 0.6;
-		
 		//slash height
 		var xHeight = 1;
 		var yHeight = this.height / 4;
@@ -261,7 +325,7 @@ function BreakLine(context, startTime, endTime, x, y, tooltip){
 		var ls = this.context.svg.append("line");
 		var ls_x1 = this.x;
 		var ls_y1 = this.y + this.height / 2;
-		var ls_x2 = this.x + this.width * lPercent;
+		var ls_x2 = this.x + this.width * 0.4;
 		var ls_y2 = ls_y1;
 		ls.attr("x1", ls_x1).attr("y1", ls_y1).attr("x2", ls_x2).attr("y2", ls_y2);
 		ls.attr("style", "stroke:" + this.context.colors.COLOR_BLACK);
@@ -276,7 +340,7 @@ function BreakLine(context, startTime, endTime, x, y, tooltip){
 
 		//line end
 		var le = this.context.svg.append("line");
-		var le_x1 = this.x + this.width * rPercent;
+		var le_x1 = this.x + this.width * 0.6;
 		var le_y1 = this.y + this.height / 2;
 		var le_x2 = this.x + this.width;
 		var le_y2 = le_y1;
@@ -290,10 +354,6 @@ function BreakLine(context, startTime, endTime, x, y, tooltip){
 		var l3_y2 = le_y1 - yHeight;
 		l3.attr("x1", l3_x1).attr("y1", l3_y1).attr("x2", l3_x2).attr("y2", l3_y2);
 		l3.attr("style", "stroke:" + this.context.colors.COLOR_BLACK);
-	}
-	
-	this.toHtml = function(){
-		//<rect x="310" y="20" width="100" height="20" style="fill:rgb(230,230,230)"/>
 	}
 }
 
@@ -318,12 +378,6 @@ function DoubleTimer(context, name, time, x, y, color1, color2){
 		var t2_y = t1_y - timer1.height / 4;
 		var timer2 = new Timer(this.context, this.name, this.time, t2_x, t2_y, this.color2);
 		timer2.show();
-	}
-	
-	this.toHtml = function(){
-		//<text x="3" y="5" style="font-size:10px;fill:black">SMT</text>
-		//<polygon points="5,12 15,12 10,20" style="fill:rgb(214,214,218);stroke:rgb(136,136,136);stroke-width:1" />
-		//<line x1="10" y1="20" x2="10" y2="42" style="stroke:rgb(128,128,128)" />
 	}
 }
 
@@ -383,12 +437,6 @@ function Timer(context, name, time, x, y, color){
 		var l_y2 = l_y1 + this.context.yUnit + yOffset;
 		l.attr("x1", l_x1).attr("y1", l_y1).attr("x2", l_x2).attr("y2", l_y2);
 		l.style("stroke", this.color);
-	}
-	
-	this.toHtml = function(){
-		//<text x="3" y="5" style="font-size:10px;fill:black">SMT</text>
-		//<polygon points="5,12 15,12 10,20" style="fill:rgb(214,214,218);stroke:rgb(136,136,136);stroke-width:1" />
-		//<line x1="10" y1="20" x2="10" y2="42" style="stroke:rgb(128,128,128)" />
 	}
 }
 

@@ -5,21 +5,17 @@ function RunningProgressBar(context, smtTime, stTime, ctTime, eetTime, rtlTime){
 	this.ctTime = ctTime;
 	this.eetTime = eetTime;
 	this.rtlTime = rtlTime;
-
-	this.init = function(){
-		return new DefaultProgressBar().init(this);
-	}
-	
-	this.getTimerBars = function(){
-		return new DefaultProgressBar().getTimerBars(this);
-	}
 	
 	this.getBeginTime = function(){
-		return this.smtTime;
+		var r = this.stTime;
+		if(this.stTime == null) r = this.smtTime;
+		return r;
 	}
 	
 	this.getStartTime = function(){
-		return this.stTime;
+		var r = this.stTime;
+		if(this.stTime == null) r = this.smtTime;
+		return r;
 	}
 	
 	this.getEndTime = function(){
@@ -46,47 +42,82 @@ function RunningProgressBar(context, smtTime, stTime, ctTime, eetTime, rtlTime){
 		return r;
 	}
 	
+	this.getStartBars = function(){
+		var r = [];
+		var x = this.context.xMargin;
+		var y = this.context.yMargin;
+		
+		//showing the smtTime into the start bar
+		if(this.stTime){
+			var pWidth = this.context.xMargin;
+			var durationDate = new Date(this.stTime - this.smtTime);
+			
+			var tooltip = "Pending Duration: \r\n " + this.context.duration.format(durationDate);
+			r.push(new ProgresserBreakLine(this.context, 0, y, pWidth, this.context.colors.COLOR_PENDING, tooltip));
+		}
+		return r;
+	}
+	
+	this.getEndBars = function(){
+		var r = [];
+		var x = this.context.xMargin;
+		var y = this.context.yMargin;
+		
+		//if there is no eetTime and no rtlTime
+		if(this.eetTime == null && this.rtlTime == null){
+			//showing the ? into the end bar
+			var x1 = x + (this.ctTime - this.getBeginTime()) * this.context.xUnit;
+			var y1 = y;
+			var pWidth = this.context.xMargin;
+			r.push(new BreakLine(this.context, x1, y1, pWidth));
+		}
+		return r;
+	}
+	
 	this.getProgressers = function(){
 		var r = [];
-		var x = 0; var y = 0;
+		var x = this.context.xMargin; 
+		var y = this.context.yMargin;
 		
-		//from smtTime to stTime
-		var x1 = x + this.context.xMargin;
-		var y1 = y + this.context.yMargin;
-		var r1 = (this.stTime - this.smtTime) * this.context.xUnit;
-		var c1 = this.context.colors.COLOR_PENDING;
-		r.push(new ProgresserBreakLine(this.context, this.smtTime, this.stTime, x1, y1, c1, "Pending Duration"));
-		
-		//from stTime to ctTime
-		var x2 = x1 + r1; 
-		var y2 = y1;
-		var r2 = (this.ctTime - this.stTime) * this.context.xUnit;
-		var c2 = this.context.colors.COLOR_RUNNING;
-		r.push(new Progresser(this.context, this.stTime, this.ctTime, x2, y2, c2, "Running Duration"));
-		
-		if(this.eetTime){
-			//from ctTime to eetTime
-			var x3 = x2 + r2; 
-			var y3 = y1;
-			var r3 = (this.eetTime - this.ctTime) * this.context.xUnit;
-			var c3 = this.context.colors.COLOR_HOLD;
-			r.push(new Progresser(this.context, this.ctTime, this.eetTime, x3, y3, c3));
-			
-			//from eetTime to rtlTime
-			if(this.rtlTime != null && this.eetTime < this.rtlTime){
-				//from estTime to ptlTime
-				var x4 = x3 + r3; 
-				var y4 = y1;
-				var r4 = (this.rtlTime - this.eetTime) * this.context.xUnit;
-				r.push(new BreakLine(this.context, this.eetTime, this.rtlTime, x4, y4));
+		if(this.ctTime){
+			//show smtTime or stTime
+			if(this.stTime){
+				//from stTime to ctTime
+				var r1 = (this.ctTime - this.stTime) * this.context.xUnit;
+				var durationDate = new Date(this.ctTime - this.stTime);
+				
+				var tooltip = "Running Time: \r\n " + this.context.duration.format(durationDate);
+				r.push(new Progresser(this.context, x, y, r1, this.context.colors.COLOR_RUNNING, tooltip));
+			}else{
+				//from smtTime to ctTime
+				var r1 = (this.ctTime - this.smtTime) * this.context.xUnit;
+				var durationDate = new Date(this.ctTime - this.smtTime);
+				
+				var tooltip = "Pending Duration: \r\n " + this.context.duration.format(durationDate);
+				r.push(new Progresser(this.context, x, y, r1, this.context.colors.COLOR_PENDING, tooltip));
 			}
-		}else{
-			if(this.rtlTime){
-				//from ctTime to rtlTime
-				var x3 = x2 + r2; 
-				var y3 = y1;
-				var r3 = (this.eetTime - this.ctTime) * this.context.xUnit;
-				r.push(new BreakLine(this.context, this.ctTime, this.rtlTime, x3, y3));
+			
+			//show eetTime or rtlTime
+			if(this.eetTime){
+				//from ctTime to eetTime
+				var x1 = x + (this.ctTime - this.getBeginTime()) * this.context.xUnit;
+				var r1 = (this.eetTime - this.ctTime) * this.context.xUnit;
+				r.push(new Progresser(this.context, x1, y, r1, this.context.colors.COLOR_HOLD));
+				
+				//from eetTime to rtlTime
+				if(this.rtlTime != null && this.eetTime < this.rtlTime){
+					//from estTime to ptlTime
+					var x1 = x + (this.eetTime - this.getBeginTime()) * this.context.xUnit;
+					var r1 = (this.rtlTime - this.eetTime) * this.context.xUnit;
+					r.push(new BreakLine(this.context, x1, y, r1));
+				}
+			}else{
+				if(this.rtlTime != null && this.ctTime < this.rtlTime){
+					//from ctTime to rtlTime
+					var x1 = x + (this.ctTime - this.getBeginTime()) * this.context.xUnit;
+					var r1 = (this.rtlTime - this.ctTime) * this.context.xUnit;
+					r.push(new BreakLine(this.context, x1, y, r1));
+				}
 			}
 		}
 		return r;
@@ -94,46 +125,36 @@ function RunningProgressBar(context, smtTime, stTime, ctTime, eetTime, rtlTime){
 	
 	this.getTimers = function(){
 		var r = [];
-		var x = 0; var y = 0; 
+		var x = this.context.xMargin; 
+		var y = this.context.yMargin;
 		
-		//smtTime
-		//don't showing the smtTime
-		if(this.smtTime){
-			var x1 = x + this.context.xMargin; 
-			var y1 = y + this.context.yMargin;
-			r.push(new Timer(this.context, "SMT", this.smtTime, x1, y1, this.context.colors.COLOR_GRAY));
-		}
-		
-		//stTime
+		//stTime or smtTime
+		//if the stTime is not exist, showing the smtTime
 		if(this.stTime){
-			var s2 = (this.stTime - this.smtTime) * this.context.xUnit;
-			var x2 = x1 + s2; 
-			var y2 = y1;
-			r.push(new Timer(this.context, "ST", this.stTime, x2, y2, this.context.colors.COLOR_GRAY));
+			r.push(new Timer(this.context, "ST", this.stTime, x, y, this.context.colors.COLOR_GRAY));
+		}else{
+			r.push(new Timer(this.context, "SMT", this.smtTime, x, y, this.context.colors.COLOR_YELLOW));
 		}
 		
 		//ctTime
 		if(this.ctTime){
-			var s3 = (this.ctTime - this.smtTime) * this.context.xUnit;
-			var x3 = x1 + s3; 
-			var y3 = y1;
-			r.push(new Timer(this.context, "CT", this.ctTime, x3, y3, this.context.colors.COLOR_GREEN));
+			var s1 = (this.ctTime - this.getBeginTime()) * this.context.xUnit;
+			var x1 = x + s1;
+			r.push(new Timer(this.context, "CT", this.ctTime, x1, y, this.context.colors.COLOR_GREEN));
 		}
 		
 		//eetTime
 		if(this.eetTime){
-			var s4 = (this.eetTime - this.smtTime) * this.context.xUnit;
-			var x4 = x1 + s4; 
-			var y4 = y1;
-			r.push(new Timer(this.context, "EET", this.eetTime, x4, y4, this.context.colors.COLOR_GRAY));
+			var s1 = (this.eetTime - this.getBeginTime()) * this.context.xUnit;
+			var x1 = x + s1; 
+			r.push(new Timer(this.context, "EET", this.eetTime, x1, y, this.context.colors.COLOR_GRAY));
 		}
 				
 		//rtlTime
 		if(this.rtlTime){
-			var s5 = (this.rtlTime - this.smtTime) * this.context.xUnit;
-			var x5 = x1 + s5; 
-			var y5 = y1;
-			r.push(new Timer(this.context, "RTL", this.rtlTime, x5, y5, this.context.colors.COLOR_RED));
+			var s1 = (this.rtlTime - this.getBeginTime()) * this.context.xUnit;
+			var x1 = x + s1;
+			r.push(new Timer(this.context, "RTL", this.rtlTime, x1, y, this.context.colors.COLOR_RED));
 		}
 		return r;
 	}

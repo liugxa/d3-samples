@@ -4,16 +4,8 @@ function DoneProgressBar(context, smtTime, stTime, etTime){
 	this.stTime = stTime;
 	this.etTime = etTime;
 	
-	this.init = function(){
-		return new DefaultProgressBar().init(this);
-	}
-
-	this.getTimerBars = function(){
-		return new DefaultProgressBar().getTimerBars(this);
-	}
-	
 	this.getBeginTime = function(){
-		return this.smtTime;
+		return this.stTime;
 	}
 	
 	this.getStartTime = function(){
@@ -28,50 +20,50 @@ function DoneProgressBar(context, smtTime, stTime, etTime){
 		return this.etTime;
 	}
 	
+	this.getStartBars = function(){
+		var r = [];
+		var x = this.context.xMargin; 
+		var y = this.context.yMargin;
+		
+		//showing the smtTime into the start bar
+		if(this.stTime){
+			var pWidth = this.context.xMargin;
+			var durationDate = new Date(this.stTime - this.smtTime);
+			
+			var tooltip = "Pending Duration: \r\n " + this.context.duration.format(durationDate);
+			r.push(new ProgresserBreakLine(this.context, 0, y, pWidth, this.context.colors.COLOR_PENDING, tooltip));
+		}
+		return r;
+	}
+	
 	this.getProgressers = function(){
 		var r = [];
 		var x = 0; var y = 0;
 		
-		//from smtTime to stTime
-		var x1 = x + this.context.xMargin; 
-		var y1 = y + this.context.yMargin;
-		var r1 = (this.stTime - this.smtTime) * this.context.xUnit;
-		r.push(new ProgresserBreakLine(this.context, this.smtTime, this.stTime, x1, y1, this.context.colors.COLOR_PENDING, "Pending Duration"));
-		
 		//from stTime to etTime
-		var x2 = x1 + r1; 
-		var y2 = y1;
+		var x2 = x + this.context.xMargin; 
+		var y2 = y + this.context.yMargin;
 		var r2 = (this.etTime - this.stTime) * this.context.xUnit;
-		r.push(new Progresser(this.context, this.stTime, this.etTime, x2, y2, this.context.colors.COLOR_DONE));
+		r.push(new Progresser(this.context, x2, y2, r2, this.context.colors.COLOR_DONE));
 		
 		return r;
 	}
 	
 	this.getTimers = function(){
 		var r = [];
-		var x = 0; var y = 0;
-		
-		//smtTime
-		if(this.smtTime){
-			var x1 = x + this.context.xMargin; 
-			var y1 = y + this.context.yMargin;
-			r.push(new Timer(this.context, "SMT", this.smtTime, x1, y1, this.context.colors.COLOR_GRAY));
-		}
+		var x = this.context.xMargin; 
+		var y = this.context.yMargin;
 		
 		//stTime
 		if(this.stTime){
-			var s2 = (this.stTime - this.smtTime) * this.context.xUnit;
-			var x2 = x1 + s2; 
-			var y2 = y1;
-			r.push(new Timer(this.context, "ST", this.stTime, x2, y2, this.context.colors.COLOR_GRAY));
+			r.push(new Timer(this.context, "ST", this.stTime, x, y, this.context.colors.COLOR_GRAY));
 		}
 		
 		//etTime
 		if(this.etTime){
-			var s3 = (this.etTime - this.smtTime) * this.context.xUnit;
-			var x3 = x1 + s3; 
-			var y3 = y2;
-			r.push(new Timer(this.context, "ET", this.etTime, x3, y3, this.context.colors.COLOR_GRAY));
+			var s1 = (this.etTime - this.stTime) * this.context.xUnit;
+			var x1 = x + s1;
+			r.push(new Timer(this.context, "ET", this.etTime, x1, y, this.context.colors.COLOR_GRAY));
 		}
 		return r;
 	}

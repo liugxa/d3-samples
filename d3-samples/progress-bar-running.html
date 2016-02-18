@@ -28,12 +28,20 @@
 				<td><div id="div3" style="width:500px;height:80px"/></td>
 			</tr>
 			<tr>
-				<th>Running (no EET, no RTL)</th>
+				<th>Running (no ST, no EET, no RTL)</th>
 				<td><div id="div4" style="width:500px;height:80px"/></td>
 			</tr>
 			<tr>
-				<th>Running (no EET, CT &lt; RTL)</th>
+				<th>Running (no ST no EET, CT &lt; RTL)</th>
 				<td><div id="div5" style="width:500px;height:80px"/></td>
+			</tr>
+			<tr>
+				<th>Running (no EET, no RTL)</th>
+				<td><div id="div6" style="width:500px;height:80px"/></td>
+			</tr>
+			<tr>
+				<th>Running (no EET, CT &lt; RTL)</th>
+				<td><div id="div7" style="width:500px;height:80px"/></td>
 			</tr>			
 		</table>
 
@@ -81,8 +89,28 @@
 				}
 				showProgressBar("#div3", times);
 			}
-			
 			function showCase4(){
+				var times = {
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: null,
+					ctTime: new Date("2015-12-31T00:40:00.0000Z"),
+					eetTime: null,
+					rtlTime: null,
+				}
+				showProgressBar("#div4", times);
+			}
+			
+			function showCase5(){
+				var times = {
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: null,
+					ctTime: new Date("2015-12-31T00:40:00.0000Z"),
+					eetTime: null,
+					rtlTime: new Date("2015-12-31T00:45:00.0000Z"),
+				}
+				showProgressBar("#div5", times);
+			}			
+			function showCase6(){
 				var times = {
 					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
 					stTime: new Date("2015-12-31T00:10:00.0000Z"),
@@ -90,18 +118,18 @@
 					eetTime: null,
 					rtlTime: null,
 				}
-				showProgressBar("#div3", times);
+				showProgressBar("#div6", times);
 			}
 			
-			function showCase5(){
+			function showCase7(){
 				var times = {
 					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
 					stTime: new Date("2015-12-31T00:10:00.0000Z"),
 					ctTime: new Date("2015-12-31T00:40:00.0000Z"),
 					eetTime: null,
-					rtlTime: new Date("2015-12-31T00:50:00.0000Z"),
+					rtlTime: new Date("2015-12-31T00:45:00.0000Z"),
 				}
-				showProgressBar("#div5", times);
+				showProgressBar("#div7", times);
 			}
 			
 			function showProgressBar(div, times){
@@ -120,6 +148,8 @@
 				showCase3();
 				showCase4();
 				showCase5();
+				showCase6();
+				showCase7();
 			}
 			main()
 		</script>
