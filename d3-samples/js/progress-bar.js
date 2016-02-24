@@ -20,20 +20,22 @@ function Colors(){
 	this.COLOR_TEXT_ITALIC = "#757575";
 }
 
-function I18n(){
+function _I18n(){
 	this.get = function(name){
 		var r = {
-			"SMT": {"name": "SMT", "wholeName": "Submitted Time"},
-			"CT": {"name": "CT", "wholeName": "Current Time"},
-			"EST": {"name": "EST", "wholeName": "Estimated Start Time"},
-			"ET": {"name": "ET", "wholeName": "End Time"},
-			"SPT": {"name": "SPT", "wholeName": "Suspended Time"},
-			"PTL": {"name": "PTL", "wholeName": "Pending Time Limit"},
-			"EST=PTL": {"name": "PTL", "wholeName": "Pending Time Limit"},
-			"ST": {"name": "ST", "wholeName": "Start Time"},
-			"EET": {"name": "EET", "wholeName": "Estimated End Time"},
-			"RTL": {"name": "RTL", "wholeName": "Run Time Limit"},
-			"EET=RTL": {"name": "EET=RTL", "wholeName": "Run Time Limit"},
+			"SMT": {"name": "SMT", "value": "Submitted Time"},
+			"CT": {"name": "CT", "value": "Current Time"},
+			"EST": {"name": "EST", "value": "Estimated Start Time"},
+			"ET": {"name": "ET", "value": "End Time"},
+			"SPT": {"name": "SPT", "value": "Suspended Time"},
+			"PTL": {"name": "PTL", "value": "Pending Time Limit"},
+			"EST=PTL": {"name": "PTL", "value": "Pending Time Limit"},
+			"ST": {"name": "ST", "value": "Start Time"},
+			"EET": {"name": "EET", "value": "Estimated End Time"},
+			"RTL": {"name": "RTL", "value": "Run Time Limit"},
+			"EET=RTL": {"name": "EET=RTL", "value": "Run Time Limit"},
+			"pending.duration": {"name": "pending.duration", "value": "Pending Duration"},
+			"running.time": {"name": "running.time", "value": "Running Time"},
 		};
 		return r[name];
 	}
@@ -187,8 +189,13 @@ function ProgressBar(context, times, pStatus){
 	}	
 }
 
-function ProgressBarContext(container){
-	this.container = container;
+//using the d3 or rave2
+//var PB = d3;
+var PB = rave;
+
+function ProgressBarContext(container, i18n){
+	this.container = PB.select(container);
+	console.log("rave: " + container);
 	
 	this.width = this.container.style("width");
 	this.height = this.container.style("height");
@@ -207,7 +214,7 @@ function ProgressBarContext(container){
 	this.showTimerBar = true;
 	
 	/* i18n messages */	
-	this.i18n = new I18n();
+	this.i18n = (i18n != null) ? i18n: new _I18n();
 	
 	/* the statistic colors */
 	this.colors = new Colors();
@@ -234,25 +241,25 @@ function Tooltip(context, x, y, tooltip){
 	this.attach = function(object){
 		object.on("mouseenter", function(){
 			object.style("cursor", "pointer");
-			var tp_x = d3.event.pageX + 10;
-			var tp_y = d3.event.pageY + 10;
+			var tp_x = PB.event.pageX + 10;
+			var tp_y = PB.event.pageY + 10;
 			
-			var tp = d3.select("body").append("div").attr("id", "div-tooltip").attr("class", "tooltip").text(tooltip);
+			var tp = PB.select("body").append("div").attr("id", "div-tooltip").attr("class", "tooltip").text(tooltip);
 			tp.style("left", tp_x + "px").style("top", tp_y + "px");
 		});
 		
 		object.on("mousemove", function(){
-			//console.log("event.pageX: " + d3.event.pageX + " | event.pageY: " + d3.event.pageY);
-			var tp_x = d3.event.pageX + 10;
-			var tp_y = d3.event.pageY + 10;
+			//console.log("event.pageX: " + PB.event.pageX + " | event.pageY: " + PB.event.pageY);
+			var tp_x = PB.event.pageX + 10;
+			var tp_y = PB.event.pageY + 10;
 			
-			var tp = d3.select("#div-tooltip");
+			var tp = PB.select("#div-tooltip");
 			tp.style("left", tp_x + "px").style("top", tp_y + "px");
 		});
 		
 		object.on("mouseout", function(){
 			//console.log("mouse out!");
-			var tp = d3.select("#div-tooltip");
+			var tp = PB.select("#div-tooltip");
 			tp.remove();
 		});
 	}
@@ -413,9 +420,9 @@ function Timer(context, name, time, x, y, color){
 		if(this.name != ""){
 			//console.log(this.name + " | " + this.time);
 			var t = this.context.i18n.get(this.name);
-			var format = d3.time.format("%Y-%m-%d %H:%M:%S");
+			var format = PB.time.format("%Y-%m-%d %H:%M:%S");
 			
-			var tMessage = t.wholeName + ": \r\n " + format(this.time);
+			var tMessage = t.value + ": \r\n " + format(this.time);
 			var tp = new Tooltip(this.context, this.x, this.y, tMessage);
 			tp.attach(p);
 		}
@@ -486,7 +493,7 @@ function TimerBar(context, name, time, x, y){
 		var t1 = this.context.svg.append("text");
 		var t1_x = rx;
 		var t1_y = ry + this.height / 2;
-		var format = d3.time.format("%Y-%m-%d");
+		var format = PB.time.format("%Y-%m-%d");
 		var tfont = this.height * 0.4 + "px";
 		t1.attr("x", t1_x).attr("y", t1_y).attr("width", this.width).attr("height", this.height);
 		t1.style("font-size", tfont).style("font-family", "Arial").text(format(this.time));
@@ -502,7 +509,7 @@ function TimerBar(context, name, time, x, y){
 		var t2 = this.context.svg.append("text");
 		var t2_x = t1_x;
 		var t2_y = t1_y + this.height / 2;
-		var format = d3.time.format("%H:%M:%S");
+		var format = PB.time.format("%H:%M:%S");
 		t2.attr("x", t2_x).attr("y", t2_y).attr("width", this.width).attr("height", this.height);
 		t2.style("font-size", tfont).style("font-family", "Arial").text(format(this.time));
 		if(this.name == "endTime") {

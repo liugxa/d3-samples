@@ -34,7 +34,7 @@ function ExitedProgressBar(context, smtTime, stTime, etTime){
 			var pWidth = this.context.xMargin;
 			var durationDate = new Date(this.stTime - this.smtTime);
 			
-			var tooltip = "Pending Duration: \r\n " + this.context.duration.format(durationDate);
+			var tooltip = this.context.i18n.get("pending.duration").value + ": \r\n " + this.context.duration.format(durationDate);
 			r.push(new ProgresserBreakLine(this.context, 0, y, pWidth, this.context.colors.COLOR_PENDING, tooltip));
 		}
 		return r;

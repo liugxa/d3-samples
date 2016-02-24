@@ -52,7 +52,7 @@ function RunningProgressBar(context, smtTime, stTime, ctTime, eetTime, rtlTime){
 			var pWidth = this.context.xMargin;
 			var durationDate = new Date(this.stTime - this.smtTime);
 			
-			var tooltip = "Pending Duration: \r\n " + this.context.duration.format(durationDate);
+			var tooltip = this.context.i18n.get("pending.duration").value + ": \r\n " + this.context.duration.format(durationDate);
 			r.push(new ProgresserBreakLine(this.context, 0, y, pWidth, this.context.colors.COLOR_PENDING, tooltip));
 		}
 		return r;
@@ -86,14 +86,14 @@ function RunningProgressBar(context, smtTime, stTime, ctTime, eetTime, rtlTime){
 				var r1 = (this.ctTime - this.stTime) * this.context.xUnit;
 				var durationDate = new Date(this.ctTime - this.stTime);
 				
-				var tooltip = "Running Time: \r\n " + this.context.duration.format(durationDate);
+				var tooltip = this.context.i18n.get("running.time").value + ": \r\n " + this.context.duration.format(durationDate);
 				r.push(new Progresser(this.context, x, y, r1, this.context.colors.COLOR_RUNNING, tooltip));
 			}else{
 				//from smtTime to ctTime
 				var r1 = (this.ctTime - this.smtTime) * this.context.xUnit;
 				var durationDate = new Date(this.ctTime - this.smtTime);
 				
-				var tooltip = "Pending Duration: \r\n " + this.context.duration.format(durationDate);
+				var tooltip = this.context.i18n.get("pending.duration").value + ": \r\n " + this.context.duration.format(durationDate);
 				r.push(new Progresser(this.context, x, y, r1, this.context.colors.COLOR_PENDING, tooltip));
 			}
 			

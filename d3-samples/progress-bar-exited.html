@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+		<script src="./js/d3.js" charset="utf-8"></script>
+		<script src="./js/rave.js" charset="utf-8"></script>
 		<script src="./js/progress-bar.js" charset="utf-8"></script>
-		<script src="./js/progress-bar-exited.js" charset="utf-8"></script>
+		<script src="./js/progress-bar-all.js" charset="utf-8"></script>
 		
 		<link rel="stylesheet" type="text/css" href="./css/progress-bar.css"/>
 	</head>
@@ -42,7 +43,7 @@
 			
 			function showProgressBar(div, times){
 				//initialize the context
-				var context = new ProgressBarContext(d3.select(div));
+				var context = new ProgressBarContext(div);
 				
 				//initilize the progress bar object
 				var progressBar = new ProgressBar(context, times, "EXIT");

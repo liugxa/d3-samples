@@ -47,7 +47,7 @@ function PendingProgressBar(context, smtTime, ctTime, estTime, ptlTime){
 			var r1 = (this.ctTime - this.smtTime) * this.context.xUnit;
 			var durationDate = new Date(this.ctTime - this.smtTime);
 			
-			var tooltip = "Pending Duration: \r\n " + this.context.duration.format(durationDate);
+			var tooltip = this.context.i18n.get("pending.duration").value + ": \r\n " + this.context.duration.format(durationDate);
 			r.push(new Progresser(this.context, x, y, r1, this.context.colors.COLOR_PENDING, tooltip));
 			
 			if(this.estTime){
