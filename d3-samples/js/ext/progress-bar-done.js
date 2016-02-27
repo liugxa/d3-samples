@@ -4,19 +4,11 @@ function DoneProgressBar(context, smtTime, stTime, etTime){
 	this.stTime = stTime;
 	this.etTime = etTime;
 	
-	this.getBeginTime = function(){
-		return this.stTime;
-	}
-	
 	this.getStartTime = function(){
 		return this.stTime;
 	}
 	
 	this.getEndTime = function(){
-		return this.etTime;
-	}
-	
-	this.getFinishTime = function(){
 		return this.etTime;
 	}
 	
@@ -26,11 +18,13 @@ function DoneProgressBar(context, smtTime, stTime, etTime){
 		var y = this.context.yMargin;
 		
 		//showing the smtTime into the start bar
-		if(this.stTime){
+		if(this.smtTime && this.stTime){
 			var pWidth = this.context.xMargin;
-			var durationDate = new Date(this.stTime - this.smtTime);
+			var smtTimeDate = this.context.dateFormat.format(this.smtTime);
+			var durationDate = this.context.dateFormat.duration(new Date(this.stTime - this.smtTime));
 			
-			var tooltip = this.context.i18n.get("pending.duration").value + ": \r\n " + this.context.duration.format(durationDate);
+			var tooltip = this.context.i18n.get("submitted").value + ": <br> " + smtTimeDate + " <br> <br> ";
+			tooltip = tooltip + this.context.i18n.get("pending.duration").value + ": <br> " + durationDate;
 			r.push(new ProgresserBreakLine(this.context, 0, y, pWidth, this.context.colors.COLOR_PENDING, tooltip));
 		}
 		return r;
@@ -38,14 +32,17 @@ function DoneProgressBar(context, smtTime, stTime, etTime){
 	
 	this.getProgressers = function(){
 		var r = [];
-		var x = 0; var y = 0;
+		var x = this.context.xMargin; 
+		var y = this.context.yMargin;
 		
-		//from stTime to etTime
-		var x2 = x + this.context.xMargin; 
-		var y2 = y + this.context.yMargin;
-		var r2 = (this.etTime - this.stTime) * this.context.xUnit;
-		r.push(new Progresser(this.context, x2, y2, r2, this.context.colors.COLOR_DONE));
-		
+		//from start time to end time
+		if(this.getStartTime() && this.getEndTime()){
+			var r0 = (this.getEndTime() - this.getStartTime()) * this.context.xUnit;
+			var durationDate = this.context.dateFormat.duration(new Date(this.getEndTime() - this.getStartTime()));	
+			
+			var tooltip = this.context.i18n.get("run.time").value + ": <br> " + durationDate;
+			r.push(new Progresser(this.context, x, y, r0, this.context.colors.COLOR_DONE, tooltip));
+		}
 		return r;
 	}
 	

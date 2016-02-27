@@ -3,10 +3,8 @@
 	<head>
 		<script src="./js/d3.js" charset="utf-8"></script>
 		<script src="./js/rave.js" charset="utf-8"></script>
-		<script src="./js/progress-bar.js" charset="utf-8"></script>
-		<script src="./js/progress-bar-all.js" charset="utf-8"></script>
-		
-		<link rel="stylesheet" type="text/css" href="./css/progress-bar.css"/>
+		<script src="./js/progress.js" charset="utf-8"></script>
+		<link rel="stylesheet" type="text/css" href="./css/progress.css"/>
 	</head>
 		
 	<body>
@@ -17,7 +15,7 @@
 			</tr>
 			<tr>
 				<th>Suspended (while running)</th>
-				<td><div id="div1" style="width:500px;height:80px"/></td>
+				<td><div id="div1" style="width:500px;height:70px"/></td>
 			</tr>
 		</table>
 		
@@ -27,7 +25,8 @@
 				var times = {
 					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
 					stTime: null,
-					sptTime: new Date("2015-12-31T00:59:00.0000Z"),
+					sptTime: new Date("2015-12-31T00:50:00.0000Z"),
+					ctTime: new Date("2015-12-31T00:59:00.0000Z"),
 				}
 				showProgressBar("#div0", times);
 			}
@@ -35,8 +34,9 @@
 			function showCase1(){
 				var times = {			
 					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
-					stTime: new Date("2015-12-31T00:20:00.0000Z"),
-					sptTime: new Date("2015-12-31T00:59:00.0000Z"),
+					stTime: new Date("2015-12-31T00:00:00.0000Z"),
+					sptTime: new Date("2015-12-31T00:40:00.0000Z"),
+					ctTime: new Date("2015-12-31T00:59:00.0000Z"),
 				}
 				showProgressBar("#div1", times);
 			}

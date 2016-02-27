@@ -18,14 +18,14 @@ div.tooltip {
 	position: absolute;			
 	/*text-align: center;*/		
 	width: 120px;
-	height: 30px;
+	/*height: 30px;*/
 	padding: 0px;				
 	font: 12px sans-serif;		
 	border-style: solid;
 	border-color: rgb(230,230,230);
 	border-width: 1px;	
 	background-color: rgb(255, 255, 255);
-	filter:alpha(opacity=20);
-	-moz-opacity:0.8;
-	opacity:0.8;
+	/*filter:alpha(opacity=20);*/
+	/*-moz-opacity:0.8;*/
+	/*opacity:0.8;*/
 }
