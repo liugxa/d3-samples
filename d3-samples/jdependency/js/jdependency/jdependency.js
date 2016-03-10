@@ -94,12 +94,12 @@ function JDCanvas(context, diagrams){
 		return new JDDiagram(this.context, diagram.id, position.x, position.y, diagram.label, diagram.type, diagram.state);
 	}
 	
-	this.toJDLine = function(sDiagram, eDiagram){
+	this.toJDLine = function(sDiagram, eDiagram, condition){
 		var sPosition = this.getCentPositon(sDiagram);
 		var ePosition = this.getCentPositon(eDiagram);
 		
 		var jdLineId = (sDiagram.id + "-" + eDiagram.id);
-		return new JDLine(this.context, jdLineId, sPosition.x, sPosition.y, ePosition.x, ePosition.y, sDiagram.condition);
+		return new JDLine(this.context, jdLineId, sPosition.x, sPosition.y, ePosition.x, ePosition.y, condition);
 	}
 	
 	this.getJDDiagram = function(jdDiagrams, jdId){
@@ -148,7 +148,7 @@ function JDCanvas(context, diagrams){
 				var jdDepDiagram = this.getJDDiagram(jdDiagrams, depDiagram.id);
 				
 				//using the line to express the dependency
-				var jdPLine = this.toJDLine(depDiagram, diagram);
+				var jdPLine = this.toJDLine(depDiagram, diagram, dependency.condition);
 				
 				//set relationship
 				//console.log("set relationship between: " + jdDepDiagram.id + " & " + jdDiagram.id);
@@ -356,7 +356,6 @@ function JDLine(context, id, x1, y1, x2, y2, label){
 	this.y2 = y2;
 	this.label = label;
 	
-	/*
 	this.show = function(){	
 		var group = this.context.svg.append("g");
 		
@@ -372,36 +371,24 @@ function JDLine(context, id, x1, y1, x2, y2, label){
 		var tPath = t.append("textPath").attr("id", this.id + "-textpath");
 		tPath.attr("xlink:href", "#" + (this.id + "-path")).attr("startOffset", "50%");
 		tPath.text(this.label);
+		
+		this.px1 = this.x1; this.py1 = this.y1;
+		this.px2 = this.x2; this.py2 = this.y2;
 	}
 	
 	this.startAt = function(dx, dy){
+		this.px1 = this.x1 + dx; this.py1 = this.y1 + dy;
 		var path = svg.select("#" + (this.id + "-path"));
-		var d = "M " + (this.x1 + dx) + " " + (this.y1 + dy) + " L " + this.x2 + " " + this.y2;
-		path.attr("d", d);
-	}
-	
-	this.endAt = function(dx, dy){
-		var path = svg.select("#" + (this.id + "-path"));
-		var d = "M " + this.x1 + " " + this.y1 + " L " + (this.x2 + dx) + " " + (this.y2 + dy);
+		var d = "M " + this.px1 + " " + this.py1 + " L " + this.px2 + " " + this.py2;
 		path.attr("d", d);	
 	}
-	*/
-	this.show = function(){	
-		var group = this.context.svg.append("g");
-		var line = group.append("line").attr("id", (this.id + "-line"));
-		
-		line.attr("x1", this.x1).attr("y1", this.y1).attr("x2", this.x2).attr("y2", this.y2);
-		line.style("stroke", "gray").style("stroke-width", "1").style("stroke-dasharray", ("3, 3"));
-	}
-	
-	this.startAt = function(dx, dy){
-		var line = svg.select("#" + (this.id + "-line"));
-		line.attr("x1", this.x1 + dx).attr("y1", this.y1 + dy);
-	}
 	
 	this.endAt = function(dx, dy){
-		var line = svg.select("#" + (this.id + "-line"));
-		line.attr("x2", this.x2 + dx).attr("y2", this.y2 + dy);
+		this.px2 = this.x2 + dx; this.py2 = this.y2 + dy;
+		var path = svg.select("#" + (this.id + "-path"));		
+		var d = "M " + this.px1 + " " + this.py1 + " L " + this.px2 + " " + this.py2;
+		path.attr("d", d);	
+		
 	}	
 }
 
