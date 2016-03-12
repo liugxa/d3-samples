@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="../js/svg/d3.js" charset="utf-8"></script>
+		<script src="../js/svg/rave.js" charset="utf-8"></script>
+		<script src="../js/jd/jd.js" charset="utf-8"></script>
+	</head>
+		
+	<body>
+		<div id="canvas" style="width:820px;height:600px"/>
+		<script>
+			var urlContext = window.location.href + "/../..";
+			var jdContext = new JDContext("#canvas", urlContext, true);
+			var jdCanvas = new JDCanvas(jdContext);
+			
+			function getDependencies(){
+				var r = [];
+				
+				var diagrams = getDiagrams();
+				var pDiagrams = diagrams.parents;
+				var diagram = diagrams.current;
+				var cDiagrams = diagrams.childrens;
+				
+				//the dependency between parent with current diagram
+				for(var i=0;i<pDiagrams.length;i++){
+					var dependency = {};
+					dependency.sDiagram = pDiagrams[i];
+					dependency.eDiagram = diagram;
+					dependency.condition = "Done";
+					r.push(dependency);
+				}	
+				
+				//the dependency between current diagram with its childrens
+				for(var i=0;i<cDiagrams.length;i++){
+					var dependency = {};
+					dependency.sDiagram = diagram
+					dependency.eDiagram = cDiagrams[i];
+					dependency.condition = "Running";
+					r.push(dependency);
+				}
+				return r;
+			}
+			
+			function getDiagrams(){
+				var diagrams = {};
+				
+				//parent diagrams
+				var pDiagrams = [];
+				for(var i=0;i<20;i++){
+					var diagram = {};
+					diagram.id = "job-p" + i;
+					diagram.label = "job-p" + i;
+					diagram.type = "job";
+					diagram.state = "running";
+					pDiagrams.push(diagram);
+				}
+				diagrams.parents = pDiagrams;
+				
+				//current diagram
+				var diagram = {};
+				diagram.id = "job";
+				diagram.label = "MyJob";
+				diagram.type = "jobarray";
+				diagram.state = "pending";
+				diagrams.current = diagram;
+				
+				//child diagrams
+				var cDiagrams = [];
+				for(var i=0;i<3;i++){
+					var diagram = {};
+					diagram.id = "job-c" + i;
+					diagram.label = "job-c" + i;
+					diagram.type = "job";
+					diagram.state = "waiting";
+					cDiagrams.push(diagram);
+				}
+				diagrams.childrens = cDiagrams;
+				
+				return diagrams;
+			}
+			
+			function testShowDiagrams(){
+				jdCanvas.diagrams = getDiagrams();
+				jdCanvas.dependencies = getDependencies();
+				
+				jdCanvas.startup();
+				jdCanvas.show();
+			}
+			
+			function main(){
+				//show diagram on excel position
+				testShowDiagrams();
+			}
+			main()
+		</script>
+	</body>
+
+</html>
