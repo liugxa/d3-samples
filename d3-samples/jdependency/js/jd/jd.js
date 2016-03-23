@@ -1,6 +1,6 @@
 var svg = rave;
 
-function JDContext(container, urlContext, showExcel, showReverse){
+function JDContext(container, urlContext, showExcel){
 	this.container = svg.select(container);
 	this.urlContext = urlContext;
 	
@@ -16,9 +16,6 @@ function JDContext(container, urlContext, showExcel, showReverse){
 	
 	//show the excel background
 	this.showExcel = (showExcel != true) ? false : true;
-	
-	//show the canvas reverse or not
-	this.showReverse = (showReverse != true) ? false : true;
 
 	//the diagram's width & height
 	this.TEXT_WIDTH = 16;
@@ -35,214 +32,80 @@ function JDContext(container, urlContext, showExcel, showReverse){
 	
 	this.W = this.xUnit * this.xCount;
 	this.H = this.yUnit * this.yCount;
-}
 
-function JDDiagramList(context, diagrams){
-	this.context = context;
-	this.diagrams = diagrams;
+	//create the maker
+	var defs = this.svg.append("defs");
+	var marker = defs.append("marker")
+		.attr("id","arrow")
+		.attr("markerUnits","strokeWidth")
+		.attr("markerWidth","12")
+		.attr("markerHeight","12")
+		.attr("viewBox","0 0 12 12")
+		.attr("refX","6")
+		.attr("refY","6")
+		.attr("orient","auto");
+	var arrow_path = "M2,2 L10,6 L2,10 L6,6 L2,2";	
+	marker.append("path").attr("d", arrow_path).attr("fill", "#000000;");
 	
-	var xOffset = 5; var yOffset = 0;
 	this.getCenterPosition = function(){
 		//the center position
-		var x = Math.floor(this.context.xCount / 2);
-		var y = Math.floor(this.context.yCount / 2);
+		var x = Math.floor(this.xCount / 2);
+		var y = Math.floor(this.yCount / 3);
 		return {x: x, y:y};
 	}
-	
-	this.getParentJDDiagrams = function(){
-		var r = [];
-		var position = this.getCenterPosition();
-		
-		//parent diagrams
-		var pDiagrams = this.diagrams.parents
-		var pCount = Math.round(pDiagrams.length / this.context.yCount);
-		if(pCount <= (position.x - xOffset)){
-			for(var i=0;i<pCount;i++){
-				for(var j=0;j<this.context.yCount;j++){
-					var index = i * this.context.yCount + j;
-					if(index < pDiagrams.length){
-						var px = (position.x - xOffset) - i;
-						var jdPDiagram = new JDDiagram(this.context, pDiagrams[index], px, j);
-						jdPDiagram.startup();
-						r.push(jdPDiagram);
-					}
-				}
-			}
-		}else{
-			//TODO, EXTEND THE CANVAS WIDTH AND HEIGHT
-		}
-		return r;
-	}
-	
-	this.getCurrentJDDiagram = function(){
-		var position = this.getCenterPosition();
-		
-		//current diagram
-		var diagram = this.diagrams.current;
-		var jdDiagram = new JDDiagram(this.context, diagram, position.x, 2);
-		jdDiagram.startup();
-		return jdDiagram;	
-	}
-	
-	this.getChildJDDiagrams = function(){
-		var r = [];
-		var position = this.getCenterPosition();
-		
-		//child diagrams
-		var cDiagrams = this.diagrams.childrens;
-		for(var i=0;i<cDiagrams.length;i++){
-			var jdCDiagram = new JDDiagram(this.context, cDiagrams[i], position.x + xOffset, i + 1);
-			jdCDiagram.startup();
-			r.push(jdCDiagram);
-		}
-		return r;
-	}
-
-	this.getJDDiagrams = function(){
-		var r = []; 
-		r = r.concat(this.getParentJDDiagrams());
-		r = r.concat(this.getChildJDDiagrams());
-		r.push(this.getCurrentJDDiagram());
-		return r;
-	}
 }
 
-function JDDiagram(context, diagram, cx, cy){
+function JDCanvas(context, dependencies){
 	this.context = context;
-	this.diagram = diagram;
-	this.cx = cx;
-	this.cy = cy;
-	this.jdImage;
-	
-	this.startup = function(){
-		//set the diagram's position in the matrix
-		var position = this.getPosition();
-		this.jdImage = new JDImage(this.context, this.diagram.id, position.x, position.y, this.diagram.label, this.diagram.type, this.diagram.state);	
-	}
-	
-	this.show = function(mx, my){
-		this.jdImage.show();
-	}
-	
-	this.getPosition = function(){
-		var x = this.cx * this.context.xUnit;
-		var y = this.cy * this.context.yUnit;
-		return {x: x, y: y};
-	}
-}
-
-function JDDependency(context, jdDiagrams, dependency){
-	this.context = context;
-	this.jdDiagrams = jdDiagrams;
-	this.dependency = dependency;
-	this.jdLine;
-	
-	this.startup = function(){
-		var sDiagram = this.dependency.sDiagram;
-		var eDiagram = this.dependency.eDiagram;
-		var condition = this.dependency.condition;
-	
-		//using the line to express the dependency
-		var sPosition = this.getPosition(sDiagram);
-		var ePosition = this.getPosition(eDiagram);
-		
-		var jdLineId = (sDiagram.id + "-" + eDiagram.id);
-		this.jdLine = new JDLine(this.context, jdLineId, sPosition.x, sPosition.y, ePosition.x, ePosition.y, condition);	
-	}
+	this.dependencies = dependencies;
 	
 	this.show = function(){
-		this.jdLine.show();
-	}
-	
-	this.getPosition = function(diagram){
-		var jdDiagram = this.getJDDiagram(diagram.id);
-		var position = jdDiagram.getPosition();
-		
-		var x = position.x + this.context.xUnit / 2;
-		var y = (position.y + this.context.TEXT_HEIGHT ) + this.context.IMAGE_HEIGHT / 2;	
-		return {x: x, y: y};
-	}
-	
-	this.getJDDiagram = function(jdId){
-		var r = null;
-		for(var i=0;i<this.jdDiagrams.length;i++){
-			if(this.jdDiagrams[i].diagram.id == jdId){
-				r = this.jdDiagrams[i];
-				break;
-			}
-		}
-		return r;
-	}
-	
-	this.startAt = function(x, y){
-		if(this.jdLine) this.jdLine.startAt(x, y);
-	}
-	
-	this.endAt = function(x, y){
-		if(this.jdLine) this.jdLine.endAt(x, y);
-	}
-}
-
-function JDDependencyList(context, dependencies){
-	this.context = context;
-	this.dependencies = dependencies;
-
-	this.getJDDependencies = function(jdDiagrams){
-		var r = []
-		for(var i=0;i<this.dependencies.length;i++){
-			//using the line to express the dependency
-			var jdDependency = new JDDependency(this.context, jdDiagrams, dependencies[i]);
-			jdDependency.startup();
-			r.push(jdDependency);
-		}
-		return r;
-	}
-}
-
-function JDCanvas(context, diagrams, dependencies){
-	this.context = context;
-	this.diagrams = diagrams;
-	this.dependencies = dependencies;
-	this.jdDiagrams;
-	this.jdDependencies;
-	
-	this.startup = function(){
-		var jdDiagramList = new JDDiagramList(this.context, this.diagrams);
-		var jdDependencyList = new JDDependencyList(this.context, this.dependencies);
-		
-		this.jdDiagrams = jdDiagramList.getJDDiagrams();
-		this.jdDependencies = jdDependencyList.getJDDependencies(this.jdDiagrams);	
+		var xOffset = 3; var yOffset = 1;
 		
 		//register myself into the context
-		this.context.canvas = this;
+		//this.context.canvas = this;
+		var position = this.context.getCenterPosition();
 		
-		//create the maker
-		var defs = this.context.svg.append("defs");
-		var marker = defs.append("marker")
-			.attr("id","arrow")
-			.attr("markerUnits","strokeWidth")
-			.attr("markerWidth","12")
-			.attr("markerHeight","12")
-			.attr("viewBox","0 0 12 12")
-			.attr("refX","6")
-			.attr("refY","6")
-			.attr("orient","auto");
-		var arrow_path = "M2,2 L10,6 L2,10 L6,6 L2,2";	
-		marker.append("path").attr("d", arrow_path).attr("fill", "#000000;");		
-	}
-	
-	this.show = function(){
+		//show the item and sub items at firstChild
+		//show item
+		var item = this.dependencies.item;
+		var jdDiagram = new JDDiagram(this.context, position.x, position.y, "c", item);
+		jdDiagram.show();
+		
+		//show sub items
+		var sx = position.x + xOffset;
+		var sy = position.y - yOffset;
+		var subItems = this.dependencies.subItems;
+		for(var i=0;i<subItems.length;i++){
+			var jdSubDiagram = new JDDiagram(this.context, sx, sy + i, "s" + i, subItems[i]);
+			this.showDiagram(this.context, jdDiagram, jdSubDiagram);
+		}
+		
+		//show the dependency
+		var dx = position.x - xOffset;
+		var dy = position.y;
+		var dependency = this.dependencies.dependency;
+		var jdDependency = new JDDependency(this.context, dx, dy, "d", dependency, jdDiagram);
+		jdDependency.show();
+		
 		//show the excel or not
 		if(this.context.showExcel == true) this.showExcel();
+	}
+	
+	this.showDiagram = function(context, jdStartDiagram, jdEndDiagram){
+		//show line at first
+		var sPosition = jdStartDiagram.getCenterPosition();
+		var ePosition = jdEndDiagram.getCenterPosition();
 		
-		//show the reverse or not
-		if(this.context.showReverse != true){
-			this.showJDDependencies();
-			this.showJDDiagrams();
-		}else{
-			this.showJDDiagrams();
-			this.showJDDependencies();	
-		}
+		var jdLineId = jdStartDiagram.id + "_" + jdEndDiagram.id;
+		var jdLine = new JDLine(context, sPosition.x, sPosition.y, ePosition.x, ePosition.y, jdLineId);
+		jdLine.show();	
+		
+		jdStartDiagram.outLines.push(jdLine);
+		jdEndDiagram.inLines.push(jdLine);
+		
+		//show diagram
+		jdEndDiagram.show();
 	}
 	
 	this.showExcel = function(){
@@ -270,105 +133,167 @@ function JDCanvas(context, diagrams, dependencies){
 			jdDashLine.show();
 		}
 	}
+}
 	
-	this.showJDDiagrams = function(){
-		for(var i=0;i<this.jdDiagrams.length;i++){
-			var jdDiagram = this.jdDiagrams[i];
-			if(jdDiagram) jdDiagram.show();
-		}
+function JDDependency(context, cx, cy, id, dependency, jdParentDiagram){
+	this.context = context;
+	this.cx = cx; 
+	this.cy = cy;
+	this.id = id;
+	this.dependency = dependency;
+	this.jdParentDiagram = jdParentDiagram;
+	
+	this.show = function(){
+		this.showDependency(this.cx, this.cy, this.id, this.dependency, this.jdParentDiagram);
 	}
 	
-	this.showJDDependencies = function(){
-		for(var i=0;i<this.jdDependencies.length;i++){
-			var jdDependency = this.jdDependencies[i];
-			if(jdDependency) jdDependency.show();
-		}
+	this.showDiagram = function(context, jdStartDiagram, jdEndDiagram){
+		//show line at first
+		var sPosition = jdStartDiagram.getCenterPosition();
+		var ePosition = jdEndDiagram.getCenterPosition();
+		
+		var jdLineId = jdStartDiagram.id + "_" + jdEndDiagram.id;
+		var jdLine = new JDLine(context, sPosition.x, sPosition.y, ePosition.x, ePosition.y, jdLineId);
+		jdLine.show();	
+		
+		jdStartDiagram.outLines.push(jdLine);
+		jdEndDiagram.inLines.push(jdLine);
+		
+		//show diagram
+		jdStartDiagram.show();
 	}
 	
-	this.moveDependency = function(jdId, x, y){
-		//get all dependencies of the jdDiagram
-		for(var i=0;i<this.jdDependencies.length;i++){
-			var jdDependency = this.jdDependencies[i];
-			var dependency = jdDependency.dependency;
-			if(dependency.sDiagram.id == jdId){
-				//move the start point
-				jdDependency.startAt(x, y);
-			}
-			if(dependency.eDiagram.id == jdId){
-				//move the end point
-				jdDependency.endAt(x, y);
+	this.showDependency = function(cx, cy, id, dependency, jdParentDiagram){
+		var xOffset = 2; var yOffset = 1;
+		var type = dependency.type;
+		if(type != null){
+			if(type == "and" || type == "or"){
+				var andOrId = id + "_" + type;
+				var jdAndOrDiagram = new JDDiagram(this.context, cx, cy, andOrId, dependency);
+				this.showDiagram(this.context, jdAndOrDiagram, jdParentDiagram);
+				
+				var items = dependency.items;
+				if(items != null){
+					for(var i=0;i<items.length;i++){
+						var icx = cx - xOffset;
+						var icy = cy - yOffset + i;
+						var itemId = andOrId + "_" + i;
+						this.showDependency(icx, icy, itemId, items[i], jdAndOrDiagram);
+					}
+				}
+			}else{
+				var jdId = id + "_" + "d"
+				var jdDiagram = new JDDiagram(this.context, cx, cy, jdId, dependency);
+				this.showDiagram(this.context, jdDiagram, jdParentDiagram);
 			}
 		}
 	}
 }
 
 /* diagram = text + image */
-function JDImage(context, id, x, y, label, type, state){
+function JDDiagram(context, cx, cy, id, item){
 	this.context = context;
+	this.cx = cx; 
+	this.cy = cy;
 	this.id = id;
-	this.x = x;
-	this.y = y;
-	this.label = label;
-	this.type = type;
-	this.state = state;
+	this.item = item;
+	this.inLines = [];
+	this.outLines = [];
 	
 	this.show = function(){
+		var position = this.getPosition();
+		var _self = this;
+		
 		var yOffset = 2;
-		var self = this;
 		var drag = svg.behavior.drag().on("drag", function() {	
 			var move = svg.transform(this.getAttribute("transform")).translate;
 			var x = svg.event.dx + move[0];
 			var y = svg.event.dy + move[1];
 			svg.select(this).attr("transform", "translate(" + x + "," + y +   ")");
 			
-			self.context.canvas.moveDependency(self.id, x, y);
+			//call the in lines to execute the endAt method
+			for(var i=0;i<_self.inLines.length;i++){
+				var inLine = _self.inLines[i];
+				inLine.endAt(x, y);
+			}
+			
+			//call the out lines to execute the startAt method
+			for(var i=0;i<_self.outLines.length;i++){
+				var outLine = _self.outLines[i];
+				outLine.startAt(x, y);
+			}
 		});
 		
 		var group = this.context.svg.append("g").call(drag);
-		var t = group.append("text").attr("id", this.id + "-text");
-		var tx = this.x;
-		var ty = this.y + this.context.TEXT_HEIGHT - yOffset;
+		var t = group.append("text").attr("id", "jd_image_text_" + this.id);
+		var tx = position.x;
+		var ty = position.y + this.context.TEXT_HEIGHT - yOffset;
 		t.attr("x", tx).attr("y", ty);
 		t.attr("width", this.context.TEXT_WIDTH).attr("height", this.context.TEXT_HEIGHT);
 		t.style("font-family", "Arial").style("font-size", "8.5pt").style("weight", "bold");
-		t.text(this.label);
+		if(this.getType() != "and" && this.getType() != "or"){
+			t.text(this.item.type + " (" + this.item.id + ") ");
+		}
 		
 		//crete image
-		var img = group.append("image").attr("id", this.id + "-image");
-		var ix = this.x;
-		var iy = this.y + this.context.TEXT_HEIGHT;
+		var img = group.append("image").attr("id", "jd_image_" + this.id);
+		var ix = position.x;
+		var iy = position.y + this.context.TEXT_HEIGHT;
 		img.attr("x", ix).attr("y", iy);
 		img.attr("width", this.context.IMAGE_WIDTH).attr("height", this.context.IMAGE_HEIGHT);
 		img.attr("xlink:href", this.context.urlContext + this.getImageSrc());
+		img.on("dblclick", function(){
+			window.imageOnclick(self.context, self.id);
+		})
 	}
 	
 	this.getImageSrc = function(){
-		var t = this.getType();
-		var s = this.getState();
-		
-		var r = "/images/resources/" + t + ".gif";
-		if(s != "") r = "/images/resources/" + s + "/" + t + ".gif";
+		var r = "/images/resources/" + this.getType() + ".gif";
+		if(this.state != "") r = "/images/resources/" + this.getStatus() + "/" + this.getType() + ".gif";
 		return r;
+	}
+		
+	this.getPosition = function(){
+		var x = this.cx * this.context.xUnit;
+		var y = this.cy * this.context.yUnit;
+		return {x: x, y: y};
+	}
+	
+	this.getCenterPosition = function(){
+		var position = this.getPosition();
+		var x = position.x + context.xUnit / 2;
+		var y = (position.y + this.context.TEXT_HEIGHT ) + this.context.IMAGE_HEIGHT / 2;	
+		return {x: x, y: y};
 	}
 	
 	this.getType = function(){
 		var r = "job";
-		if(this.type){
-			var t = this.type.toUpperCase();
-			if(t == "JOBARRAY") r = "jobarray";
+		var t = this.item.type.toUpperCase();
+		switch(t){
+			case "JOBARRAY":
+				r = "jobarray";
+				break;
+			case "AND":
+				r = "and";
+				break;
+			case "OR":
+				r = "or";
+				break;
 		}
 		return r;
 	}
 	
-	this.getState = function(){
+	this.getStatus = function(){
 		var r = "";
-		if(this.state){
-			var s = this.state.toUpperCase();
+		if(this.item.status){
+			var s = this.item.status.toUpperCase();
 			switch(s){
 				case "PENDING":
+				case "PEND":
 					r = "pending";
 					break;
 				case "RUNNING":
+				case "RUN":
 					r = "running";
 					break;
 				case "DONE":
@@ -390,36 +315,37 @@ function JDImage(context, id, x, y, label, type, state){
 					break;
 			}
 		}
-		//console.log("Job State: "+ r);
 		return r;
-	}
+	}		
 }
 
-function JDLine(context, id, x1, y1, x2, y2, label){
+function JDLine(context, x1, y1, x2, y2, id, label, style){
 	this.context = context;
-	this.id = id;
 	this.x1 = x1;
 	this.y1 = y1;
 	this.x2 = x2;
 	this.y2 = y2;
+	this.id = id;
 	this.label = label;
+	this.style = (style) ? style: "dash";
 	
 	this.show = function(){	
 		var group = this.context.svg.append("g");
 		
-		//<path id="LINE_PATH" d="M 40 0 l 200 200" stroke="green" stroke-width="3" fill="none" />
-		var path = group.append("path").attr("id", this.id + "-path");
+		var path = group.append("path").attr("id", "jd_line_path_" + this.id);
 		var d = this.getD(this.x1, this.y1, this.x2, this.y2);
 		path.attr("d", d).attr("style", "stroke: black").attr("marker-mid","url(#arrow)");
-		path.style("stroke-dasharray", ("3, 3"));
 		
-		var t = group.append("text").attr("id", this.id + "-text");
+		//the line style. By default, showing dash line
+		if(this.style == "dash") path.style("stroke-dasharray", ("3, 3"));
+		
+		var t = group.append("text").attr("id", "jd_line_text_" + this.id);
 		t.style("text-anchor", "middle").style("font-size", "9pt");
 		t.style("font-family", "Arial, Helvetica, sans-serif").style("font-style", "italic");
 		t.attr("dy", "-4");
 		
-		var tPath = t.append("textPath").attr("id", this.id + "-textpath");
-		tPath.attr("xlink:href", "#" + (this.id + "-path")).attr("startOffset", "50%");
+		var tPath = t.append("textPath").attr("id", "jd_line_textpath_" + this.id);
+		tPath.attr("xlink:href", "#" + ("jd_line_path_" + this.id)).attr("startOffset", "50%");
 		tPath.text(this.label);
 		
 		this.px1 = this.x1; this.py1 = this.y1;
@@ -433,7 +359,7 @@ function JDLine(context, id, x1, y1, x2, y2, label){
 	
 	this.startAt = function(dx, dy){
 		this.px1 = this.x1 + dx; this.py1 = this.y1 + dy;
-		var path = svg.select("#" + (this.id + "-path"));
+		var path = svg.select("#" + ("jd_line_path_" + this.id));
 		
 		var d = this.getD(this.px1, this.py1, this.px2, this.py2)
 		path.attr("d", d);	
@@ -441,11 +367,10 @@ function JDLine(context, id, x1, y1, x2, y2, label){
 	
 	this.endAt = function(dx, dy){
 		this.px2 = this.x2 + dx; this.py2 = this.y2 + dy;
-		var path = svg.select("#" + (this.id + "-path"));
+		var path = svg.select("#" + ("jd_line_path_" + this.id));
 		
 		var d = this.getD(this.px1, this.py1, this.px2, this.py2)
-		path.attr("d", d);	
-		
+		path.attr("d", d);
 	}	
 }
 

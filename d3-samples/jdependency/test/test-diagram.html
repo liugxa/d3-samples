@@ -3,6 +3,7 @@
 	<head>
 		<script src="../js/svg/d3.js" charset="utf-8"></script>
 		<script src="../js/svg/rave.js" charset="utf-8"></script>
+		<script src="../js/jd/jd-plugin.js" charset="utf-8"></script>
 		<script src="../js/jd/jd.js" charset="utf-8"></script>
 	</head>
 		
@@ -14,82 +15,72 @@
 			var jdCanvas = new JDCanvas(jdContext);
 			
 			function getDependencies(){
-				var r = [];
+				var r = {};
 				
-				var diagrams = getDiagrams();
-				var pDiagrams = diagrams.parents;
-				var diagram = diagrams.current;
-				var cDiagrams = diagrams.childrens;
+				//item
+				var item = {};
+				item.id = 0;
+				item.type = "jobarray";
+				item.status = "pending";
+				r.item = item;
 				
-				//the dependency between parent with current diagram
-				for(var i=0;i<pDiagrams.length;i++){
-					var dependency = {};
-					dependency.sDiagram = pDiagrams[i];
-					dependency.eDiagram = diagram;
-					dependency.condition = "Done";
-					r.push(dependency);
-				}	
+				//the dependency
+				var dependency = {};
+				dependency.type = "or";
+				var items = [];
 				
-				//the dependency between current diagram with its childrens
-				for(var i=0;i<cDiagrams.length;i++){
-					var dependency = {};
-					dependency.sDiagram = diagram
-					dependency.eDiagram = cDiagrams[i];
-					dependency.condition = "Running";
-					r.push(dependency);
-				}
-				return r;
-			}
-			
-			function getDiagrams(){
-				var diagrams = {};
-				
-				//parent diagrams
-				var pDiagrams = [];
-				for(var i=0;i<20;i++){
-					var diagram = {};
-					diagram.id = "job-p" + i;
-					diagram.label = "job-p" + i;
-					diagram.type = "job";
-					diagram.state = "running";
-					pDiagrams.push(diagram);
-				}
-				diagrams.parents = pDiagrams;
-				
-				//current diagram
-				var diagram = {};
-				diagram.id = "job";
-				diagram.label = "MyJob";
-				diagram.type = "jobarray";
-				diagram.state = "pending";
-				diagrams.current = diagram;
-				
-				//child diagrams
-				var cDiagrams = [];
+				//and item 0
+				var andItem0 = {};
+				andItem0.type = "and";
+				var andItems0 = [];
 				for(var i=0;i<3;i++){
-					var diagram = {};
-					diagram.id = "job-c" + i;
-					diagram.label = "job-c" + i;
-					diagram.type = "job";
-					diagram.state = "waiting";
-					cDiagrams.push(diagram);
+					var item = {};
+					item.id = 100 + i;
+					item.type = "job";
+					item.status = "waiting";
+					item.condition = "Done";
+					andItems0.push(item);
 				}
-				diagrams.childrens = cDiagrams;
+				andItem0.items = andItems0;
+				items.push(andItem0);
 				
-				return diagrams;
-			}
-			
-			function testShowDiagrams(){
-				jdCanvas.diagrams = getDiagrams();
-				jdCanvas.dependencies = getDependencies();
+				//and item 1
+				var andItem1 = {};
+				andItem1.type = "and";
+				var andItems1 = [];
+				for(var i=0;i<3;i++){
+					var item = {};
+					item.id = 200 + i;
+					item.type = "job";
+					item.status = "waiting";
+					item.condition = "Done";
+					andItems1.push(item);
+				}
+				andItem1.items = andItems1;				
+				items.push(andItem1);
 				
-				jdCanvas.startup();
-				jdCanvas.show();
+				dependency.items = items;
+				r.dependency = dependency;
+				
+				//sub items
+				var subItems = [];
+				for(var i=0;i<3;i++){
+					var item = {};
+					item.id = 300 + i;
+					item.type = "job";
+					item.status = "waiting";
+					subItems.push(item);
+				}
+				r.subItems = subItems;
+				
+				return r;
 			}
 			
 			function main(){
 				//show diagram on excel position
-				testShowDiagrams();
+				jdCanvas.dependencies = getDependencies();
+				jdCanvas.show();
+				
 			}
 			main()
 		</script>
