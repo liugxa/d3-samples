@@ -1,27 +1,11 @@
 #!/bin/bash
-FILE_NAME=progress-bar-all.js
-rm -f ./progress-bar.js
-rm -f ./progress-ext.js
-rm -f ./progress.js
 
-if [ -f ${FILE_NAME} ]; then
-	rm -rf ${FILE_NAME}
-fi
+rm -f ./jd.js
+rm -f ./jd-plugin.js
 
-#compress the progress directory
-for file in ./progress/*
+#create jd.js file
+for file in ./jd/*
 do
-	cat ${file} >> ./progress-bar.js
-	echo "" >> ./progress-bar.js
+	cat ${file} >> ./jd.js
+	echo "" >> ./jd.js
 done
-
-#compress the ext directory
-for file in ./ext/*
-do
-	cat ${file} >> ./progress-ext.js
-	echo "" >> ./progress-ext.js
-done
-
-#compress all files into progress.js
-cat ./progress-bar.js >> progress.js
-cat ./progress-ext.js >> progress.js

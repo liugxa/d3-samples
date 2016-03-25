@@ -1,86 +1,122 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src="./js/d3.js" charset="utf-8"></script>
-		<script src="./js/rave.js" charset="utf-8"></script>
-		<script src="./js/jdependency/jdependency.js" charset="utf-8"></script>
+		<script src="./js/svg/d3.js" charset="utf-8"></script>
+		<script src="./js/svg/rave.js" charset="utf-8"></script>
+		<script src="./js/jd.js" charset="utf-8"></script>
 	</head>
 		
 	<body>
-	
-		View Job Dependencies: #jobId
-		<div id="canvas" style="width:800px;height:600px"/>
+		<button onclick="doHideDependencies()">Hide Dependencies</button>
+		<div id="canvas" style="width:820px;height:600px"/>
 		<script>
 			var urlContext = window.location.href + "/..";
 			var jdContext = new JDContext("#canvas", urlContext, true);
 			var jdCanvas = new JDCanvas(jdContext);
 			
-			function getDiagrams(){
-				var diagrams = {};
-				
-				//parent diagrams
-				var pDiagrams = [];
-				for(var i=0;i<10;i++){
-					var diagram = {};
-					diagram.id = "job" + i;
-					diagram.label = "Job (" + i +") ";
-					diagram.type = "job";
-					diagram.state = "running";
-					diagram.dependencies = [];
-					pDiagrams.push(diagram);
-				}
-				diagrams.parents = pDiagrams;
-				
-				var pDependencies = [];
-				for(var i=0;i<pDiagrams.length;i++){
-					var dependency = {};
-					dependency.depended = pDiagrams[i];
-					dependency.condition = "Done";
-					pDependencies.push(dependency);
-				}
-				
-				//current diagram
-				var cDiagram = {
-					id: "job11",
-					label: "MyJob" + " (11) ",
-					type: "job",
-					state: "pending",
-					dependencies: pDependencies
-				};
-				diagrams.current = cDiagram;
-				
-				//child diagrams
-				var cDiagrams = [];
-				for(var i=0;i<3;i++){
-					var diagram = {};
-					diagram.id = "job" + (pDiagrams.length + 2 + i);
-					diagram.label = "Job (" + (pDiagrams.length + 2 + i) + ") ";
-					diagram.type = "job";
-					diagram.state = "waiting";
-					
-					var dependencies = [];
-					var dependency = {};
-					dependency.depended = cDiagram;
-					dependency.condition = "Done";
-					
-					dependencies.push(dependency);
-					diagram.dependencies = dependencies;
-					
-					cDiagrams.push(diagram);
-				}
-				diagrams.childrens = cDiagrams;
-				
-				return diagrams;
+			function doHideDependencies(){
+				jdCanvas.hideDependencies();
 			}
 			
-			function testShowDiagrams(){
-				jdCanvas.diagrams = getDiagrams();
-				jdCanvas.show();
+			function getDependencies2(){
+				var r = {};
+				
+				//item
+				var item = {};
+				item.id = 0;
+				item.type = "jobarray";
+				item.status = "pending";
+				r.item = item;
+				
+				//the dependency
+				var item = {};
+				item.id = 100;
+				item.type = "job";
+				item.status = "waiting";
+				item.condition = "*Done";
+				r.dependency = item;
+				
+				//sub items
+				var subItems = [];
+				for(var i=0;i<3;i++){
+					var item = {};
+					item.id = 300 + i;
+					item.type = "job";
+					item.status = "waiting";
+					subItems.push(item);
+				}
+				r.subItems = subItems;
+				
+				return r;
+			}
+			
+			function getDependencies(){
+				var r = {};
+				
+				//item
+				var item = {};
+				item.id = 0;
+				item.type = "jobarray";
+				item.status = "pending";
+				r.item = item;
+				
+				//the dependency
+				var dependency = {};
+				dependency.type = "or";
+				var items = [];
+				
+				//and item 0
+				var andItem0 = {};
+				andItem0.type = "and";
+				var andItems0 = [];
+				for(var i=0;i<3;i++){
+					var item = {};
+					item.id = 100 + i;
+					item.type = "job";
+					item.status = "waiting";
+					item.condition = "Done";
+					andItems0.push(item);
+				}
+				andItem0.items = andItems0;
+				items.push(andItem0);
+				
+				//and item 1
+				var andItem1 = {};
+				andItem1.type = "and";
+				var andItems1 = [];
+				for(var i=0;i<3;i++){
+					var item = {};
+					item.id = 200 + i;
+					item.type = "job";
+					item.status = "waiting";
+					item.condition = "Done";
+					andItems1.push(item);
+				}
+				andItem1.items = andItems1;				
+				items.push(andItem1);
+				
+				dependency.items = items;
+				r.dependency = dependency;
+				
+				//sub items
+				var subItems = [];
+				for(var i=0;i<3;i++){
+					var item = {};
+					item.id = 300 + i;
+					item.type = "job";
+					item.status = "waiting";
+					subItems.push(item);
+				}
+				r.subItems = subItems;
+				
+				return r;
 			}
 			
 			function main(){
 				//show diagram on excel position
-				testShowDiagrams();
+				jdCanvas.data = getDependencies();
+				jdCanvas.show();
+				
 			}
 			main()
 		</script>
