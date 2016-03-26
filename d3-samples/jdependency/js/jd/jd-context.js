@@ -30,9 +30,6 @@ function JDContext(container, urlContext, showExcel=false){
 	this.xCount = Math.floor(this.w / this.xUnit);
 	this.yCount = Math.floor(this.h / this.yUnit);
 	
-	this.W = this.xUnit * this.xCount;
-	this.H = this.yUnit * this.yCount;
-
 	//create the maker
 	var defs = this.svg.append("defs");
 	var marker = defs.append("marker")
@@ -48,16 +45,84 @@ function JDContext(container, urlContext, showExcel=false){
 	marker.append("path").attr("d", arrow_path).attr("fill", "#000000;");
 }
 
-function JDPosition(context, cx, cy){
+function JDPosition(context, x, y){
 	this.context = context;
-	this.cx = cx;
-	this.cy = cy;
-	this.x = cx * context.xUnit;
-	this.y = cy * context.yUnit;
+	this.x = x;
+	this.y = y;
 	
-	this.getCenterPosition = function(){
+	this.getCell = function(){
+		var cx = this.x / this.context.xUnit;
+		var cy = this.y / this.context.yUnit;
+		return {cx: cx, cy: cy};	
+	}
+	
+	this.getCenter = function(){
 		var x = this.x + this.context.xUnit / 2;
 		var y = (this.y + this.context.TEXT_HEIGHT ) + this.context.IMAGE_HEIGHT / 2;	
 		return {x: x, y: y};
+	}
+	
+	this.equals = function(position){
+		var r = false;
+		if(position.x == this.x && position.y == this.y) r = true;
+		return r;
+	}
+}
+
+function JDRecord(){
+	this.position;
+	this.items = [];
+}
+
+function JDLayer(context){
+	this.context = context;
+	this.records = [];
+	
+	this.addItem = function(position, item){
+		var record = null;
+		for(var i=0;i<this.records.length;i++){
+			var r = this.records[i];
+			var rItems = r.items;
+			for(var j=0;j<rItems.length;j++){
+				var rItem = rItems[j];
+				if(rItem != null && rItem.position.x == position.x){
+					record = r;
+					break;
+				}
+			}
+		}
+		
+		if(record != null){
+			record.items.push(item);
+		}else{
+			record = new JDRecord();
+			record.position = position;
+			record.items.push(item);
+			this.records.push(record);
+		}
+	}
+	
+	this.settingPosition = function(){
+		//re-setting the position of the item base on the size of canvas
+		//but, the principle is to let the diagram visible!
+		//so, if there has not enought cells to fit for these items, resize the canvas!
+		//the other solution is to resize the diagram's width/height, but is lower.
+		//console.log(this.context.yCount + "|" + this.items.length);
+		
+		for(var i=0;i<this.records.length;i++){
+			var record = this.records[i];
+			var rPosition = record.position;
+			var rItems = record.items;
+			
+			var step = Math.floor(this.context.yCount / rItems.length);
+			for(var j=0;j<rItems.length;j++){
+				//the cx not be change, only focus on the cy
+				var cy = Math.floor(step * (j + 1) - (step / 2));
+				var y = cy * this.context.yUnit;
+	
+				var position = new JDPosition(this.context, rPosition.x, y);
+				rItems[j].move(position);
+			}
+		}
 	}
 }

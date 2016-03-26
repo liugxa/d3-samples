@@ -28,13 +28,13 @@
 				item.status = "pending";
 				r.item = item;
 				
-				//the dependency
+				//the parent
 				var item = {};
 				item.id = 100;
 				item.type = "job";
 				item.status = "waiting";
 				item.condition = "*Done";
-				r.dependency = item;
+				r.parent = item;
 				
 				//sub items
 				var subItems = [];
@@ -61,12 +61,14 @@
 				r.item = item;
 				
 				//the dependency
-				var dependency = {};
-				dependency.type = "or";
-				var items = [];
+				var parentItem = {};
+				parentItem.id = "-";
+				parentItem.type = "or";
 				
+				var items = [];
 				//and item 0
 				var andItem0 = {};
+				andItem0.id = "-";
 				andItem0.type = "and";
 				var andItems0 = [];
 				for(var i=0;i<3;i++){
@@ -82,21 +84,40 @@
 				
 				//and item 1
 				var andItem1 = {};
+				andItem1.id = "-";
 				andItem1.type = "and";
 				var andItems1 = [];
 				for(var i=0;i<3;i++){
 					var item = {};
 					item.id = 200 + i;
-					item.type = "job";
+					item.type = "jobarray";
 					item.status = "waiting";
 					item.condition = "Done";
 					andItems1.push(item);
 				}
-				andItem1.items = andItems1;				
-				items.push(andItem1);
 				
-				dependency.items = items;
-				r.dependency = dependency;
+				andItem1.items = andItems1;
+				
+				var andItem1_0 = {};
+				andItem1_0.id = "-";
+				andItem1_0.type = "and";
+				var andItems1_0 = [];
+				for(var i=0;i<3;i++){
+					var item = {};
+					item.id = 210 + i;
+					item.type = "jobarray";
+					item.status = "waiting";
+					item.condition = "Done";		
+					andItems1_0.push(item);		
+				}
+				andItem1_0.items = andItems1_0;
+				items.push(andItem1_0);
+				
+				
+				items.push(andItem1);
+				parentItem.items = items;
+				
+				r.parentItem = parentItem;
 				
 				//sub items
 				var subItems = [];
