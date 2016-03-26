@@ -1,11 +1,13 @@
 
-
-
 function JDCanvas(context, data){
 	this.context = context;
 	this.data = data;
 	
-	this.show = function(){
+	this.jdDiagram = null;
+	this.jdSubItems = [];
+	this.jdParentItem = null;
+	
+	this.startup = function(){
 		var cxOffset = 3; var cyOffset = 1;
 		
 		//get center position
@@ -15,8 +17,8 @@ function JDCanvas(context, data){
 		//show the item and sub items at firstChild
 		//show item
 		var item = this.data.item;
-		var jdDiagram = new JDDiagram(this.context, cPosition, "c", item.type, item.status, item.id);
-		jdDiagram.show();
+		this.jdDiagram = new JDDiagram(this.context, cPosition, "c", item.type, item.status, item.id);
+		this.jdDiagram.startup();
 		
 		//show subitems
 		var subItems = this.data.subItems;
@@ -25,8 +27,10 @@ function JDCanvas(context, data){
 			var sy = cPosition.y - (cyOffset + i) * this.context.yUnit;
 			var sPosition = new JDPosition(this.context, sx, sy);
 			
-			var jdSubItem = new JDSubItem(this.context, sPosition, "s" + i, subItems[i], jdDiagram);
-			jdSubItem.show();
+			var jdSubItem = new JDSubItem(this.context, sPosition, "s" + i, subItems[i], this.jdDiagram);
+			jdSubItem.startup();
+			
+			this.jdSubItems.push(jdSubItem);
 		}
 		
 		//show the parents
@@ -36,9 +40,23 @@ function JDCanvas(context, data){
 			var dy = cPosition.y;
 			var dPosition = new JDPosition(this.context, dx, dy);
 			
-			var jdParentItem = new JDParentItem(this.context, dPosition, "p", parentItem, jdDiagram);
-			jdParentItem.show();
+			this.jdParentItem = new JDParentItem(this.context, dPosition, "p", parentItem, this.jdDiagram);
+			this.jdParentItem.startup();
+		}	
+	}
+	
+	this.show = function(){
+		
+		//show current diagram
+		this.jdDiagram.show();
+		
+		//show sub items
+		for(var i=0;i<this.jdSubItems.length;i++){
+			this.jdSubItems[i].show();
 		}
+		
+		//show parent item
+		this.jdParentItem.show();
 		
 		//show the excel or not
 		if(this.context.showExcel == true) this.showExcel();
@@ -61,6 +79,7 @@ function JDCanvas(context, data){
 	}
 	
 	this.showExcel = function(){
+		
 		//draw vertical line
 		for(var i=0;i<=this.context.xCount;i++){
 			var x1 = i * this.context.xUnit;
@@ -73,6 +92,7 @@ function JDCanvas(context, data){
 			var ePosition = new JDPosition(this.context, x2, y2);
 			
 			var jdDashLine = new JDLine(this.context, sPosition, ePosition, "vl", "dash");
+			jdDashLine.startup();
 			jdDashLine.show();
 		}
 		
@@ -88,6 +108,7 @@ function JDCanvas(context, data){
 			var ePosition = new JDPosition(this.context, x2, y2);
 			
 			var jdDashLine = new JDLine(this.context, sPosition, ePosition, "hl", "dash");
+			jdDashLine.startup();
 			jdDashLine.show();
 		}
 	}
@@ -110,12 +131,19 @@ function JDSubItem(context, position, id, item, jdParentDiagram){
 	this.item = item;
 	this.jdParentDiagram = jdParentDiagram;
 	
-	this.show = function(){
-		var jdSubDiagram = new JDDiagram(this.context, this.position, this.id, this.item.type, this.item.status, this.item.id);
-		var jdDependency = new JDDependency(context,  this.jdParentDiagram, jdSubDiagram);
+	this.jdSubDiagram = null;
+	this.jdDependency = null;
+	this.startup = function(){
+		this.jdSubDiagram = new JDDiagram(this.context, this.position, this.id, this.item.type, this.item.status, this.item.id);
+		this.jdSubDiagram.startup();
 		
-		jdDependency.show();
-		jdSubDiagram.show();
+		this.jdDependency = new JDDependency(context,  this.jdParentDiagram, this.jdSubDiagram);
+		this.jdDependency.startup();
+	}
+	
+	this.show = function(){
+		this.jdDependency.show();
+		this.jdSubDiagram.show();
 	}
 	
 }
@@ -126,17 +154,22 @@ function JDDependency(context, jdStartDiagram, jdEndDiagram, condition){
 	this.jdEndDiagram = jdEndDiagram;
 	this.condition = condition;
 	
-	this.show = function(){
+	this.jdLine = null;	
+	this.startup = function(){
 		//show line at first
 		var sPosition = this.jdStartDiagram.position.getCenter();
 		var ePosition = this.jdEndDiagram.position.getCenter();
 		
 		var jdLineId = this.jdStartDiagram.id + "-" + this.jdEndDiagram.id;
-		var jdLine = new JDPathLine(this.context, sPosition, ePosition, jdLineId, this.condition);
-		jdLine.show();
+		this.jdLine = new JDPathLine(this.context, sPosition, ePosition, jdLineId, this.condition);
+		this.jdLine.startup();
 		
-		this.jdStartDiagram.outLines.push(jdLine);
-		this.jdEndDiagram.inLines.push(jdLine);
+		this.jdStartDiagram.outLines.push(this.jdLine);
+		this.jdEndDiagram.inLines.push(this.jdLine);	
+	}
+	
+	this.show = function(){
+		this.jdLine.show();
 	}		
 }
 
@@ -146,11 +179,15 @@ function JDParentItem(context, position, id, item, jdParentDiagram){
 	this.id = id;
 	this.item = item;
 	this.jdParentDiagram = jdParentDiagram;
-	var jdLayer = new JDLayer(context);
+	
+	this.jdLayer = null;
+	this.startup = function(){
+		this.jdLayer = new JDLayer(this.context);
+	}
 	
 	this.show = function(){
 		this.showItem(this.context, this.position, this.id, this.item, this.jdParentDiagram);
-		jdLayer.settingPosition();
+		this.jdLayer.settingPosition();
 	}
 	
 	this.showItem = function(context, position, id, item, jdParentDiagram){
@@ -161,13 +198,17 @@ function JDParentItem(context, position, id, item, jdParentDiagram){
 			if(itemType == "and" || itemType == "or"){
 				var andOrId = id;
 				var jdAndOrDiagram = new JDDiagram(context, position, andOrId, itemType);
-				var jdDependency = new JDDependency(context, jdAndOrDiagram, jdParentDiagram);
+				jdAndOrDiagram.startup();
 				
+				var jdDependency = new JDDependency(context, jdAndOrDiagram, jdParentDiagram);
+				jdDependency.startup();
+				
+				//show it directly
 				jdDependency.show();
 				jdAndOrDiagram.show();
 				
 				//add the item into the layer
-				jdLayer.addItem(position, jdAndOrDiagram);
+				this.jdLayer.addItem(position, jdAndOrDiagram);
 				
 				var items = item.items;
 				if(items != null){
@@ -182,13 +223,17 @@ function JDParentItem(context, position, id, item, jdParentDiagram){
 				}
 			}else{
 				var jdDiagram = new JDDiagram(context, position, id, itemType, item.status, item.id);
-				var jdDependency = new JDDependency(context, jdDiagram, jdParentDiagram, item.condition);
+				jdDiagram.startup();
 				
+				var jdDependency = new JDDependency(context, jdDiagram, jdParentDiagram, item.condition);
+				jdDependency.startup();
+				
+				//show it directly!
 				jdDependency.show();
 				jdDiagram.show();
 				
 				//add the item into the layer
-				jdLayer.addItem(position, jdDiagram);
+				this.jdLayer.addItem(position, jdDiagram);
 			}
 		}
 	}

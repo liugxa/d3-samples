@@ -108,7 +108,6 @@ function JDLayer(context){
 		//so, if there has not enought cells to fit for these items, resize the canvas!
 		//the other solution is to resize the diagram's width/height, but is lower.
 		//console.log(this.context.yCount + "|" + this.items.length);
-		
 		for(var i=0;i<this.records.length;i++){
 			var record = this.records[i];
 			var rPosition = record.position;
