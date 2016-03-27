@@ -30,6 +30,10 @@ function JDContext(container, urlContext, showExcel=false){
 	this.xCount = Math.floor(this.w / this.xUnit);
 	this.yCount = Math.floor(this.h / this.yUnit);
 	
+	this.center = {};
+	this.center.x = Math.floor(this.xCount / 2) * this.xUnit;
+	this.center.y = Math.floor(this.yCount / 2) * this.yUnit;
+	
 	//create the maker
 	var defs = this.svg.append("defs");
 	var marker = defs.append("marker")
@@ -50,78 +54,21 @@ function JDPosition(context, x, y){
 	this.x = x;
 	this.y = y;
 	
-	this.getCell = function(){
-		var cx = this.x / this.context.xUnit;
-		var cy = this.y / this.context.yUnit;
-		return {cx: cx, cy: cy};	
-	}
+	this.center = {};
+	this.center.x = this.x + this.context.xUnit / 2;
+	this.center.y = (this.y + this.context.TEXT_HEIGHT ) + this.context.IMAGE_HEIGHT / 2;
 	
-	this.getCenter = function(){
-		var x = this.x + this.context.xUnit / 2;
-		var y = (this.y + this.context.TEXT_HEIGHT ) + this.context.IMAGE_HEIGHT / 2;	
-		return {x: x, y: y};
-	}
+	this.text = {};
+	this.text.x = this.x;
+	this.text.y = this.y + this.context.TEXT_HEIGHT;
+	
+	this.image = {};
+	this.image.x = this.x;
+	this.image.y = this.y + this.context.TEXT_HEIGHT;
 	
 	this.equals = function(position){
 		var r = false;
 		if(position.x == this.x && position.y == this.y) r = true;
 		return r;
-	}
-}
-
-function JDRecord(){
-	this.position;
-	this.items = [];
-}
-
-function JDLayer(context){
-	this.context = context;
-	this.records = [];
-	
-	this.addItem = function(position, item){
-		var record = null;
-		for(var i=0;i<this.records.length;i++){
-			var r = this.records[i];
-			var rItems = r.items;
-			for(var j=0;j<rItems.length;j++){
-				var rItem = rItems[j];
-				if(rItem != null && rItem.position.x == position.x){
-					record = r;
-					break;
-				}
-			}
-		}
-		
-		if(record != null){
-			record.items.push(item);
-		}else{
-			record = new JDRecord();
-			record.position = position;
-			record.items.push(item);
-			this.records.push(record);
-		}
-	}
-	
-	this.settingPosition = function(){
-		//re-setting the position of the item base on the size of canvas
-		//but, the principle is to let the diagram visible!
-		//so, if there has not enought cells to fit for these items, resize the canvas!
-		//the other solution is to resize the diagram's width/height, but is lower.
-		//console.log(this.context.yCount + "|" + this.items.length);
-		for(var i=0;i<this.records.length;i++){
-			var record = this.records[i];
-			var rPosition = record.position;
-			var rItems = record.items;
-			
-			var step = Math.floor(this.context.yCount / rItems.length);
-			for(var j=0;j<rItems.length;j++){
-				//the cx not be change, only focus on the cy
-				var cy = Math.floor(step * (j + 1) - (step / 2));
-				var y = cy * this.context.yUnit;
-	
-				var position = new JDPosition(this.context, rPosition.x, y);
-				rItems[j].move(position);
-			}
-		}
 	}
 }

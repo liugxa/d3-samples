@@ -33,8 +33,8 @@
 				item.id = 100;
 				item.type = "job";
 				item.status = "waiting";
-				item.condition = "*Done";
-				r.parent = item;
+				item.dependency = "*Done";
+				r.parentItem = item;
 				
 				//sub items
 				var subItems = [];
@@ -63,60 +63,19 @@
 				//the dependency
 				var parentItem = {};
 				parentItem.id = "-";
-				parentItem.type = "or";
+				parentItem.type = "and";
+				parentItem.dependency = "done(123) && exit(123)";
 				
 				var items = [];
-				//and item 0
-				var andItem0 = {};
-				andItem0.id = "-";
-				andItem0.type = "and";
-				var andItems0 = [];
-				for(var i=0;i<3;i++){
+				for(var i=0;i<10;i++){
 					var item = {};
 					item.id = 100 + i;
 					item.type = "job";
 					item.status = "waiting";
-					item.condition = "Done";
-					andItems0.push(item);
+					item.condition = "";
+					items.push(item);
 				}
-				andItem0.items = andItems0;
-				items.push(andItem0);
-				
-				//and item 1
-				var andItem1 = {};
-				andItem1.id = "-";
-				andItem1.type = "and";
-				var andItems1 = [];
-				for(var i=0;i<3;i++){
-					var item = {};
-					item.id = 200 + i;
-					item.type = "jobarray";
-					item.status = "waiting";
-					item.condition = "Done";
-					andItems1.push(item);
-				}
-				
-				andItem1.items = andItems1;
-				
-				var andItem1_0 = {};
-				andItem1_0.id = "-";
-				andItem1_0.type = "and";
-				var andItems1_0 = [];
-				for(var i=0;i<3;i++){
-					var item = {};
-					item.id = 210 + i;
-					item.type = "jobarray";
-					item.status = "waiting";
-					item.condition = "Done";		
-					andItems1_0.push(item);		
-				}
-				andItem1_0.items = andItems1_0;
-				items.push(andItem1_0);
-				
-				
-				items.push(andItem1);
 				parentItem.items = items;
-				
 				r.parentItem = parentItem;
 				
 				//sub items
@@ -136,8 +95,6 @@
 			function main(){
 				//show diagram on excel position
 				jdCanvas.data = getDependencies();
-				jdCanvas.startup();
-				
 				jdCanvas.show();
 			}
 			main()
