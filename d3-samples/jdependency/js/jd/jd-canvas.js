@@ -4,7 +4,7 @@ function JDCanvas(context, data){
 	this.data = data;
 	
 	this.show = function(){
-		var cxOffset = 3; var cyOffset = 1;
+		var cxOffset = 2; var cyOffset = 0;
 		
 		//get center position
 		var cPosition = new JDPosition(this.context, this.context.center.x, cyOffset * this.context.yUnit);
@@ -12,13 +12,13 @@ function JDCanvas(context, data){
 		//show the item and sub items at firstChild
 		//show item
 		var item = this.data.item;
-		var jdDiagram = new JDDiagram(this.context, "c", cPosition, item.type, item.status, item.id);
+		var jdDiagram = new JDDiagram(this.context, "c", cPosition, item);
 		jdDiagram.show();
 		
 		//show subitems
 		var subItems = this.data.subItems;
 		if(subItems != null){
-			var sx = cPosition.x + cxOffset * this.context.xUnit;
+			var sx = cPosition.x + (cxOffset + 1) * this.context.xUnit;
 			var sy = cyOffset * this.context.yUnit;
 			var sPosition = new JDPosition(this.context, sx, sy);
 			
@@ -29,7 +29,7 @@ function JDCanvas(context, data){
 		//show the parents
 		var parentItem = this.data.parentItem;
 		if(parentItem != null){
-			var dx = cPosition.x - cxOffset * this.context.xUnit;
+			var dx = cPosition.x - (cxOffset + 1) * this.context.xUnit;
 			var dy = cyOffset * this.context.yUnit;
 			var dPosition = new JDPosition(this.context, dx, dy);
 			
@@ -38,15 +38,18 @@ function JDCanvas(context, data){
 		}
 		
 		//show the excel or not
-		if(this.context.showExcel == true) this.showExcel();		
+		if(this.context.showExcel == true) this.showExcel();
+		
+		//re-sort the matirx
+		this.context.matrix.sort();
 	}
 	
 	this.hideDependencies = function(){
 		var paths = svg.selectAll("path")[0];
 		for(var i=0;i<paths.length;i++){
-			var pathId = paths[i].id;
-			if(pathId){
-				var p = svg.select("#" + pathId);
+			if(paths[i].id){
+				var pId = paths[i].id.substring(0, paths[i].id.indexOf("_path"));
+				var p = svg.select("#" + pId + "_textpath");
 				var d = p.style("display");
 				if(d != "none"){
 					p.style("display", "none");
@@ -93,31 +96,25 @@ function JDSubItems(context, jdId, position, items, parentDiagram){
 	this.parentDiagram = parentDiagram;
 	
 	this.show = function(){
+		var cxOffset = 1; var cyOffset = 1;
+	
 		if(this.items != null){
 			for(var i=0;i<this.items.length;i++){
 				var item = items[i];
 				//get item position
 				var itemId = "s" + i;
-				var iPosition = this.getItemPosition(this.context, this.position, i);
+				var ix = this.position.x; 
+				var iy = this.position.y + i * cyOffset * this.context.yUnit;
+				var iPosition = new JDPosition(this.context, ix, iy);
 				
-				var jdDiagram = new JDDiagram(this.context, itemId, iPosition, item.type, item.status, item.id);
-				var jdDependency = new JDDependency(this.context, jdDiagram, this.parentDiagram);	
+				var jdDiagram = new JDDiagram(this.context, itemId, iPosition, item);
+				var jdDependency = new JDDependency(this.context, this.parentDiagram, jdDiagram);	
 				
 				jdDependency.show();
 				jdDiagram.show();				
 				
 			}
 		}
-	}
-	
-	this.getItemPosition = function(context, position, index){
-		var xOffset = Math.floor(index / this.context.yCount);
-		var yOffset = index % this.context.yCount;
-		
-		var x = position.x + xOffset  * context.xUnit;
-		var y = yOffset * context.yUnit;
-		
-		return new JDPosition(context, x, y);
 	}
 }
 
@@ -149,51 +146,47 @@ function JDParentItem(context, jdId, position, item, parentDiagram){
 	this.parentDiagram = parentDiagram;
 	
 	this.show = function(){
-		var cxOffset = 2; var cyOffset = 1;
-		
-		if(this.item.items != null && this.item.items.length > 1){
-			var jdAndOrId = this.jdId;
-			var jdAndOrDiagram = new JDDiagram(this.context, jdAndOrId, this.position, this.item.type);
-			var jdDependency = new JDDependency(this.context, jdAndOrDiagram, this.parentDiagram, this.item.dependency);
-			
-			//show it directly
-			jdDependency.show();
-			jdAndOrDiagram.show();
-			
-			//show all of the items
-			var items = this.item.items;
-			if(items != null){
-				for(var i=0;i<items.length;i++){
-					var item = items[i];
-					//get item position
-					var itemId = jdAndOrId + "_" + i;
-					var iPosition = this.getItemPosition(this.context, this.position, i);
-					var jdDiagram = new JDDiagram(this.context, itemId, iPosition, item.type, item.status, item.id);
-					var jdDependency = new JDDependency(this.context, jdDiagram, jdAndOrDiagram);
-					
-					//show it directly!
-					jdDependency.show();
-					jdDiagram.show();
-				}
-			}
-		}else{
-			var itemId = this.jdId;
-			var jdDiagram = new JDDiagram(this.context, itemId, this.position, this.item.type, this.item.status, this.item.id);
-			var jdDependency = new JDDependency(this.context, jdDiagram, this.parentDiagram, this.item.dependency);
-			
-			//show it directly!
-			jdDependency.show();
-			jdDiagram.show();
-		}
+		this.showItem(this.context, this.jdId, this.position, this.item, this.parentDiagram);
 	}
 	
-	this.getItemPosition = function(context, position, index){
-		var xOffset = Math.floor(index / this.context.yCount);
-		var yOffset = index % this.context.yCount;
+	this.showItem = function(context, jdId, position, item, parentDiagram){
+		var cxOffset = 1; var cyOffset = 1;
 		
-		var x = position.x - (xOffset + 2) * context.xUnit;
-		var y = yOffset * context.yUnit;
-		
-		return new JDPosition(context, x, y);
+		if(item.type != null){
+			if(item.type == "and" || item.type == "or"){
+				var jdAndOrId = jdId;
+				var jdAndOrDiagram = new JDDiagram(context, jdAndOrId, position, item);
+				var jdDependency = new JDDependency(context, jdAndOrDiagram, parentDiagram);
+				
+				//show it directly
+				jdDependency.show();
+				jdAndOrDiagram.show();
+				
+				//add the diagram into the matrix
+				context.matrix.add(position, jdAndOrDiagram);
+
+				//show all of the items
+				var items = item.items;
+				if(items != null){
+					for(var i=0;i<items.length;i++){
+						var itemId = jdAndOrId + "_" + i;
+						var ix = position.x - (cxOffset + 1) * context.xUnit; 
+						var iy = position.y + (i * cyOffset) * context.yUnit;
+						var iPosition = new JDPosition(context, ix, iy);
+						this.showItem(context, itemId, iPosition, items[i], jdAndOrDiagram);
+					}
+				}
+			}else{
+				var jdDiagram = new JDDiagram(context, jdId, position, item);
+				var jdDependency = new JDDependency(context, jdDiagram, parentDiagram, item.condition);
+				
+				//show it directly!
+				jdDependency.show();
+				jdDiagram.show();
+				
+				//add the diagram into the matrix
+				context.matrix.add(position, jdDiagram);
+			}
+		}
 	}
 } 

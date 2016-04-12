@@ -1,6 +1,6 @@
 var svg = rave;
 
-function JDContext(container, urlContext, showExcel=false){
+function JDContext(container, urlContext, showExcel, i18n){
 	this.container = svg.select(container);
 	this.urlContext = urlContext;
 	
@@ -15,8 +15,13 @@ function JDContext(container, urlContext, showExcel=false){
 	this.svg.attr("height", this.h);
 	
 	//show the excel background
-	this.showExcel = showExcel;
-
+	this.showExcel = false;
+	if(showExcel && showExcel == true) this.showExcel = true;
+	
+	/* i18n messages */	
+	this.i18n = (i18n != null) ? i18n: new JDI18n();
+	console.log(this.i18n);
+	
 	//the diagram's width & height
 	this.TEXT_WIDTH = 16;
 	this.TEXT_HEIGHT = 16;
@@ -47,6 +52,8 @@ function JDContext(container, urlContext, showExcel=false){
 		.attr("orient","auto");
 	var arrow_path = "M2,2 L10,6 L2,10 L6,6 L2,2";	
 	marker.append("path").attr("d", arrow_path).attr("fill", "#000000;");
+	
+	this.matrix = new JDMatrix(this);
 }
 
 function JDPosition(context, x, y){
@@ -70,5 +77,60 @@ function JDPosition(context, x, y){
 		var r = false;
 		if(position.x == this.x && position.y == this.y) r = true;
 		return r;
+	}
+}
+
+function JDRecord(){
+	this.position;
+	this.items = [];
+}
+
+function JDMatrix(context){
+	this.context = context;
+	this.records = [];
+	
+	this.add = function(position, item){
+		var record = null;
+		for(var i=0;i<this.records.length;i++){
+			var r = this.records[i];
+			var rItems = r.items;
+			for(var j=0;j<rItems.length;j++){
+				var rItem = rItems[j];
+				if(rItem != null && rItem.position.x == position.x){
+					record = r;
+					break;
+				}
+			}
+		}
+		
+		if(record != null){
+			record.items.push(item);
+		}else{
+			record = new JDRecord();
+			record.position = position;
+			record.items.push(item);
+			this.records.push(record);
+		}
+	}
+	
+	this.sort = function(){
+		//re-setting the position of the item base on the size of canvas
+		//but, the principle is to let the diagram visible!
+		//so, if there has not enought cells to fit for these items, resize the canvas!
+		//the other solution is to resize the diagram's width/height, but is lower.
+		//console.log(this.context.yCount + "|" + this.items.length);
+		for(var i=0;i<this.records.length;i++){
+			var record = this.records[i];
+			var rPosition = record.position;
+			var rItems = record.items;
+			
+			var step = (this.context.yCount * this.context.yUnit) / rItems.length;
+			for(var j=0;j<rItems.length;j++){
+				//the cx not be change, only focus on the cy
+				var y = step * j;
+				var position = new JDPosition(this.context, rPosition.x, y);
+				rItems[j].move(position);
+			}
+		}
 	}
 }

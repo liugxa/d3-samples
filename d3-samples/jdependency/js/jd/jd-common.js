@@ -1,11 +1,9 @@
 
-function JDDiagram(context, jdId, position, type, state, label){
+function JDDiagram(context, jdId, position, item){
 	this.context = context;
 	this.jdId = jdId;
 	this.position = position;
-	this.type = type;
-	this.state = state;
-	this.label = label;
+	this.item = item;
 	
 	this.inLines = [];
 	this.outLines = [];
@@ -16,7 +14,8 @@ function JDDiagram(context, jdId, position, type, state, label){
 	this.show = function(){
 		var _self = this;
 		var drag = svg.behavior.drag().on("drag", function() {
-			_self.move(svg.event.x , svg.event.y);
+			var position = new JDPosition(_self.context, svg.event.x , svg.event.y);
+			_self.move(position);
 		});
 		
 		//create group
@@ -25,19 +24,18 @@ function JDDiagram(context, jdId, position, type, state, label){
 		
 		//create text
 		var jdTextId = this.jdId + "_text";
-		var jdText = (this.label != null) ? (this.getType() + "(" + this.label + ")") : "";
+		var jdText = (this.item.type != "and" && this.item.type != "or") ? (this.item.name + "(" + this.item.id + ")") : "";
 		this.jdText = new JDText(this.context, jdTextId, group, this.position, jdText);
 		this.jdText.show();
 		
 		//crete image
 		var jdImageId = this.jdId + "_image";
-		var jdImageSrc = this.context.urlContext + this.getSrc(type, state);
-		this.jdImage = new JDImage(this.context, jdImageId, group, this.position, jdImageSrc, this.label);
+		this.jdImage = new JDImage(this.context, jdImageId, group, this.position, this.getImgSrc(this.item), this.item.id, this.getTooltip(this.item));
 		this.jdImage.show();
 	}
 	
-	this.move = function(x, y){
-		this.position = new JDPosition(this.context, x, y);
+	this.move = function(position){
+		this.position = position;
 		
 		this.jdText.move(this.position);
 		this.jdImage.move(this.position);
@@ -56,17 +54,10 @@ function JDDiagram(context, jdId, position, type, state, label){
 		}
 	}
 	
-	this.getSrc = function(){
-		var type = this.getType(); var state = this.getState();
-		var r = "/images/resources/" + type + ".gif";
-		if(state != "") r = "/images/resources/" + state + "/" + type + ".gif";
-		return r;
-	}
-	
-	this.getType = function(){
+	this.getType = function(item){
 		var r = "job";
-		if(this.type){
-			var t = this.type.toUpperCase();
+		if(item.type){
+			var t = item.type.toUpperCase();
 			switch(t){
 				case "JOBARRAY":
 					r = "jobarray";
@@ -81,11 +72,22 @@ function JDDiagram(context, jdId, position, type, state, label){
 		}
 		return r;
 	}
+		
+	this.getImgSrc = function(item){
+		var type = this.getType(item);
+		var path = "/images/resources/" + type + ".gif";
+		
+		if(type == "job" || type == "jobarray"){
+			var state = this.getState(item);
+			if(state != "") path = "/images/resources/" + state.toLowerCase() + "/" + type + ".gif";
+		}
+		return this.context.urlContext + path;
+	}
 	
-	this.getState = function(){
+	this.getState = function(item){
 		var r = "";
-		if(this.state){
-			var s = this.state.toUpperCase();
+		if(item.status){
+			var s = item.status.toUpperCase();
 			if(s.indexOf("*") != -1) s = s.substring(s.indexOf("*") + 1);
 			switch(s){
 				case "PENDING":
@@ -116,22 +118,58 @@ function JDDiagram(context, jdId, position, type, state, label){
 			}
 		}
 		return r;
+	}
+	
+	this.getTooltip = function(item){
+		var r = "";
+		var type = this.getType(item);
+		if(type == "job"){
+			var state = this.getState(item);
+			switch(state){
+				case "pending":
+					r = this.context.i18n.get("job.status.pending");
+					break;
+				case "running":
+					r = this.context.i18n.get("job.status.running");
+					break;
+				case "done":
+					r = this.context.i18n.get("job.status.done");
+					break;
+				case "exited":
+					r = this.context.i18n.get("job.status.exited");
+					break;
+				case "suspended":
+					r = this.context.i18n.get("job.status.suspended");
+					break;
+				case "waiting":
+					r = this.context.i18n.get("job.status.waiting");
+					break;
+				case "onhold":
+					r = this.context.i18n.get("job.status.onhold");
+					break;
+			}
+		}
+		
+		if(type == "jobarray"){
+			r = item.itemsStatus;
+		}
+		return r;
 	}	
 }
 
-function JDPathLine(context, jdId, sPosition, ePosition, label, style){
+function JDPathLine(context, jdId, sPosition, ePosition, text, style){
 	this.context = context;
 	this.jdId = jdId;
 	this.sPosition = sPosition;
 	this.ePosition = ePosition;
-	this.label = label;
+	this.text = text;
 	this.style = style;
 	
 	this.show = function(){
 		this.style = (this.style) ? this.style: "dash";
-		var group = this.context.svg.append("g");
+		var group = this.context.svg.append("g").attr("id", this.jdId);
 		
-		var path = group.append("path").attr("id", this.jdId);
+		var path = group.append("path").attr("id", this.jdId + "_path");
 		path.attr("d", this.getD(this.sPosition, this.ePosition));
 		path.attr("style", "stroke: black").attr("marker-mid","url(#arrow)");
 		
@@ -144,14 +182,20 @@ function JDPathLine(context, jdId, sPosition, ePosition, label, style){
 		t.attr("dy", "-4");
 		
 		var tPath = t.append("textPath").attr("id", this.jdId + "_textpath");
-		tPath.attr("xlink:href", "#" + this.jdId).attr("startOffset", "50%");
-		if(this.label != null) tPath.text(this.label);
+		tPath.attr("xlink:href", "#" + this.jdId + "_path").attr("startOffset", "50%");
+		if(this.text != null) tPath.text(this.text);
 	}
 	
 	this.move = function(sPosition, ePosition){
 		this.sPosition = sPosition; this.ePosition = ePosition;
-		var path = svg.select("#" + this.jdId);
-		path.attr("d", this.getD(this.sPosition, this.ePosition));
+		//var path = svg.select("#" + this.jdId);
+		//path.attr("d", this.getD(this.sPosition, this.ePosition));
+		
+		//svg marker doese not work in IE browser, 
+		//you are enable to get the the answer from stackoverflow
+		var group = svg.select("#" + this.jdId);
+		group.remove();
+		this.show();
 	}
 	
 	this.getD = function(sPosition, ePosition){
@@ -161,12 +205,12 @@ function JDPathLine(context, jdId, sPosition, ePosition, label, style){
 	}
 }
 
-function JDLine(context, jdId, sPosition, ePosition, label, style){
+function JDLine(context, jdId, sPosition, ePosition, text, style){
 	this.context = context;
 	this.jdId = jdId;
 	this.sPosition = sPosition;
 	this.ePosition = ePosition;
-	this.label = label;
+	this.text = text;
 	this.style = style;
 	
 	this.show = function(){
@@ -191,13 +235,14 @@ function JDLine(context, jdId, sPosition, ePosition, label, style){
 }
 
 //the below item is base on the group object
-function JDImage(context, jdId, group, position, src, label){
+function JDImage(context, jdId, group, position, src, id, tooltip){
 	this.context = context;
 	this.jdId = jdId;
 	this.group = group;
 	this.position = position;
 	this.src = src;
-	this.label = label;
+	this.id = id;
+	this.tooltip = tooltip;
 	
 	this.show = function(){
 		var _self = this;
@@ -208,8 +253,37 @@ function JDImage(context, jdId, group, position, src, label){
 		img.attr("width", this.context.IMAGE_WIDTH).attr("height", this.context.IMAGE_HEIGHT);
 		img.attr("xlink:href", this.src);
 		img.on("dblclick", function(){
-			window.imageOnclick(_self.context, _self.label);
+			window.imageOnclick(_self.context, _self.id);
 		})
+		
+		//attach the tooltip 
+		if(this.tooltip){
+			img.on("mouseenter", function(){
+				img.style("cursor", "pointer");
+				var tp_x = svg.event.pageX + 10;
+				var tp_y = svg.event.pageY + 10;
+				
+				var tp = svg.select("body").append("div").attr("id", "div-tooltip").attr("class", "tooltip");
+				var texts = _self.tooltip.split("<br>");
+				for(var i=0;i<texts.length;i++) tp.append("span").style("display", "block").style("height", "15px").text(texts[i]);
+				
+				//text(tooltip);
+				tp.style("left", tp_x + "px").style("top", tp_y + "px");
+			});
+			img.on("mousemove", function(){
+				//console.log("event.pageX: " + PB.event.pageX + " | event.pageY: " + PB.event.pageY);
+				var tp_x = svg.event.pageX + 10;
+				var tp_y = svg.event.pageY + 10;
+				
+				var tp = svg.select("#div-tooltip");
+				tp.style("left", tp_x + "px").style("top", tp_y + "px");
+			});
+			img.on("mouseout", function(){
+				//console.log("mouse out!");
+				var tp = svg.select("#div-tooltip");
+				tp.remove();
+			});
+		}
 	}
 	
 	this.move = function(position){
@@ -219,21 +293,27 @@ function JDImage(context, jdId, group, position, src, label){
 	}
 }
 
-function JDText(context, jdId, group, position, label){
+function JDText(context, jdId, group, position, text){
 	this.context = context;
 	this.jdId = jdId;
 	this.group = group;
 	this.position = position;
-	this.label = label;
+	this.text = text;
 	
 	this.show = function(){
+		var _self = this;
 		var t = this.group.append("text");
 		t.attr("id", this.jdId);
 		t.attr("x", this.position.text.x).attr("y", this.position.text.y);
 		
 		t.attr("width", this.context.TEXT_WIDTH).attr("height", this.context.TEXT_HEIGHT);
 		t.style("font-family", "Arial").style("font-size", "8.5pt").style("weight", "bold");
-		t.text(this.label);
+		t.text(this.text);
+		
+		t.style("cursor", "pointer").on("click", function(){
+			var params = _self.text.substring(_self.text.indexOf('(') + 1, _self.text.indexOf(')'));
+			window.textOnclick(_self.context, params);
+		})
 	}
 	
 	this.move = function(position){

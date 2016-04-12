@@ -4,6 +4,7 @@
 		<script src="./js/svg/d3.js" charset="utf-8"></script>
 		<script src="./js/svg/rave.js" charset="utf-8"></script>
 		<script src="./js/jd.js" charset="utf-8"></script>
+		<link rel="stylesheet" type="text/css" href="./css/jd.css"/>
 	</head>
 		
 	<body>
@@ -18,12 +19,13 @@
 				jdCanvas.hideDependencies();
 			}
 			
-			function getDependencies2(){
+			function getDependencies1(){
 				var r = {};
 				
 				//item
 				var item = {};
 				item.id = 0;
+				item.name = "jobarray";
 				item.type = "jobarray";
 				item.status = "pending";
 				r.item = item;
@@ -31,9 +33,10 @@
 				//the parent
 				var item = {};
 				item.id = 100;
+				item.name = "job100";
 				item.type = "job";
 				item.status = "waiting";
-				item.dependency = "*Done";
+				item.condition = "*Done";
 				r.parentItem = item;
 				
 				//sub items
@@ -41,8 +44,81 @@
 				for(var i=0;i<3;i++){
 					var item = {};
 					item.id = 300 + i;
+					item.name = 300 + i;
 					item.type = "job";
 					item.status = "waiting";
+					subItems.push(item);
+				}
+				r.subItems = subItems;
+				
+				return r;
+			}
+			
+			function getDependencies2(){
+				var r = {};
+				
+				//item
+				var item = {};
+				item.id = 0;
+				item.name = "jobarray0";
+				item.type = "jobarray";
+				item.status = "pending";
+				r.item = item;
+				
+				//the parent
+				var parentItem = {};
+				parentItem.id = "-";
+				parentItem.type = "and";
+				parentItem.condition = "done(123) && exit(123)";
+				
+				var parentItems = [];
+				//another logical item
+				var andItem1 = {};
+				andItem1.id = "-";
+				andItem1.type = "or";
+				andItem1.condition = "done(223) && exit(223)";
+				var andItems1 = [];
+				for(var i=0;i<10;i++){
+					var item = {};
+					item.id = 200 + i;
+					item.name = "jobarray" + item.id;
+					item.type = "jobarray";
+					item.status = "waiting";
+					item.condition = "exit";
+					andItems1.push(item);
+				}
+				andItem1.items = andItems1;				
+				parentItems.push(andItem1);
+				
+				//another logical item
+				var andItem2 = {};
+				andItem2.id = "-";
+				andItem2.type = "or";
+				andItem2.condition = "done(223) || exit(223)";				
+				var andItems2 = [];
+				for(var i=0;i<2;i++){
+					var item = {};
+					item.id = 300 + i;
+					item.name = "jobarray" + item.id;
+					item.type = "jobarray";
+					item.status = "waiting";
+					item.condition = "exit";
+					andItems2.push(item);
+				}
+				andItem2.items = andItems2;
+				parentItems.push(andItem2);
+				
+				parentItem.items = parentItems;
+				r.parentItem = parentItem;
+				
+				//sub items
+				var subItems = [];
+				for(var i=0;i<3;i++){
+					var item = {};
+					item.id = 300 + i;
+					item.name = "job" + item.id;
+					item.type = "job";
+					item.status = "onhold";
 					subItems.push(item);
 				}
 				r.subItems = subItems;
@@ -53,29 +129,48 @@
 			function getDependencies(){
 				var r = {};
 				
-				//item
+				//the current item
 				var item = {};
 				item.id = 0;
 				item.type = "jobarray";
 				item.status = "pending";
 				r.item = item;
 				
-				//the dependency
+				//the parent item is an dependency expression
+				//the dependency expression is a logical expression
+				//composed of one of more dependency conditions				
 				var parentItem = {};
 				parentItem.id = "-";
 				parentItem.type = "and";
-				parentItem.dependency = "done(123) && exit(123)";
-				
-				var items = [];
-				for(var i=0;i<10;i++){
+				parentItem.condition = "done(123) && exit(123)";
+				var parentItems = [];
+				for(var i=0;i<20;i++){
 					var item = {};
-					item.id = 100 + i;
+					item.id = 200 + i;
 					item.type = "job";
 					item.status = "waiting";
-					item.condition = "";
-					items.push(item);
+					item.condition = "done";
+					parentItems.push(item);
 				}
-				parentItem.items = items;
+				
+				//another logical item
+				var andItem = {};
+				andItem.id = "-";
+				andItem.type = "or";
+				andItem.condition = "done(223) && exit(223)";
+				var andItems = [];
+				for(var i=0;i<10;i++){
+					var item = {};
+					item.id = 300 + i;
+					item.type = "jobarray";
+					item.status = "waiting";
+					item.condition = "exit";
+					andItems.push(item);
+				}
+				andItem.items = andItems;
+				parentItems.push(andItem);
+				
+				parentItem.items = parentItems;
 				r.parentItem = parentItem;
 				
 				//sub items
@@ -94,8 +189,9 @@
 			
 			function main(){
 				//show diagram on excel position
-				jdCanvas.data = getDependencies();
+				jdCanvas.data = getDependencies2();
 				jdCanvas.show();
+				
 			}
 			main()
 		</script>
