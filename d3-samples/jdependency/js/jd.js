@@ -69,7 +69,7 @@ function JDCanvas(context, data){
 			var sPosition = new JDPosition(this.context, x1, y1);
 			var ePosition = new JDPosition(this.context, x2, y2);
 			
-			var jdDashLine = new JDLine(this.context, "v_" + i, sPosition, ePosition, "", "dash");
+			var jdDashLine = new JDLine(this.context, "x_" + i, sPosition, ePosition, "", "dash");
 			jdDashLine.show();
 		}
 		
@@ -81,7 +81,7 @@ function JDCanvas(context, data){
 			var sPosition = new JDPosition(this.context, x1, y1);
 			var ePosition = new JDPosition(this.context, x2, y2);
 			
-			var jdDashLine = new JDLine(this.context, "h_" + i, sPosition, ePosition, "", "dash");
+			var jdDashLine = new JDLine(this.context, "y_" + i, sPosition, ePosition, "", "dash");
 			jdDashLine.show();
 		}
 	}
@@ -102,7 +102,7 @@ function JDSubItems(context, jdId, position, items, parentDiagram){
 			for(var i=0;i<this.items.length;i++){
 				var item = items[i];
 				//get item position
-				var itemId = "s" + i;
+				var itemId = this.jdId + "_" + i;
 				var ix = this.position.x; 
 				var iy = this.position.y + i * cyOffset * this.context.yUnit;
 				var iPosition = new JDPosition(this.context, ix, iy);
@@ -212,7 +212,7 @@ function JDDiagram(context, jdId, position, item){
 		});
 		
 		//create group
-		var group = this.context.svg.append("g")
+		var group = this.context.dg.append("g").attr("id", this.jdId);
 		group.call(drag);
 		
 		//create text
@@ -223,7 +223,7 @@ function JDDiagram(context, jdId, position, item){
 		
 		//crete image
 		var jdImageId = this.jdId + "_image";
-		this.jdImage = new JDImage(this.context, jdImageId, group, this.position, this.getImgSrc(this.item), this.item.id, this.getTooltip(this.item));
+		this.jdImage = new JDImage(this.context, jdImageId, group, this.position, this.item.id, this.getImgSrc(this.item), this.getType(this.item), this.getTooltip(this.item));
 		this.jdImage.show();
 	}
 	
@@ -360,7 +360,8 @@ function JDPathLine(context, jdId, sPosition, ePosition, text, style){
 	
 	this.show = function(){
 		this.style = (this.style) ? this.style: "dash";
-		var group = this.context.svg.append("g").attr("id", this.jdId);
+		//var group = this.context.svg.append("g").attr("id", this.jdId);
+		var group = this.context.pg.append("g").attr("id", this.jdId);
 		
 		var path = group.append("path").attr("id", this.jdId + "_path");
 		path.attr("d", this.getD(this.sPosition, this.ePosition));
@@ -408,9 +409,9 @@ function JDLine(context, jdId, sPosition, ePosition, text, style){
 	
 	this.show = function(){
 		this.style = (this.style) ? this.style: "dash";
-		var group = this.context.svg.append("g");
+		var group = this.context.bg.append("g").attr("id", this.jdId);
 		
-		var line = group.append("line").attr("id", this.jdId);
+		var line = group.append("line").attr("id", this.jdId + "_line");
 		line.attr("x1", this.sPosition.x).attr("y1", this.sPosition.y);
 		line.attr("x2", this.ePosition.x).attr("y2", this.ePosition.y);
 		line.style("stroke", "gray").style("stroke-width", "1");
@@ -428,13 +429,14 @@ function JDLine(context, jdId, sPosition, ePosition, text, style){
 }
 
 //the below item is base on the group object
-function JDImage(context, jdId, group, position, src, id, tooltip){
+function JDImage(context, jdId, group, position, id, src, type, tooltip){
 	this.context = context;
 	this.jdId = jdId;
 	this.group = group;
 	this.position = position;
-	this.src = src;
 	this.id = id;
+	this.src = src;
+	this.type = type;
 	this.tooltip = tooltip;
 	
 	this.show = function(){
@@ -446,7 +448,7 @@ function JDImage(context, jdId, group, position, src, id, tooltip){
 		img.attr("width", this.context.IMAGE_WIDTH).attr("height", this.context.IMAGE_HEIGHT);
 		img.attr("xlink:href", this.src);
 		img.on("dblclick", function(){
-			window.imageOnclick(_self.context, _self.id);
+			window.imageOnclick(_self.context, _self.id, _self.type);
 		})
 		
 		//attach the tooltip 
@@ -537,7 +539,6 @@ function JDContext(container, urlContext, showExcel, i18n){
 	
 	/* i18n messages */	
 	this.i18n = (i18n != null) ? i18n: new JDI18n();
-	console.log(this.i18n);
 	
 	//the diagram's width & height
 	this.TEXT_WIDTH = 16;
@@ -570,6 +571,18 @@ function JDContext(container, urlContext, showExcel, i18n){
 	var arrow_path = "M2,2 L10,6 L2,10 L6,6 L2,2";	
 	marker.append("path").attr("d", arrow_path).attr("fill", "#000000;");
 	
+	//create path group
+	this.pg = this.svg.append("g");
+	this.pg.attr("id", "pg");
+	
+	//create diagram group
+	this.dg = this.svg.append("g");
+	this.dg.attr("id", "dg");
+	
+	//create background group
+	this.bg = this.svg.append("g");
+	this.bg.attr("id", "bg");
+	
 	this.matrix = new JDMatrix(this);
 }
 
@@ -584,7 +597,7 @@ function JDPosition(context, x, y){
 	
 	this.text = {};
 	this.text.x = this.x;
-	this.text.y = this.y + this.context.TEXT_HEIGHT;
+	this.text.y = this.y + this.context.TEXT_HEIGHT / 2 + this.context.TEXT_HEIGHT / 3;
 	
 	this.image = {};
 	this.image.x = this.x;
@@ -666,10 +679,10 @@ function JDI18n(){
 		return r[name];
 	}
 }
-function imageOnclick(context, label){
-	console.log("image on click, " + label);
+function imageOnclick(context, id, type){
+	console.log("image on click! id:" + id, ", type:" + type);
 }
 
-function textOnclick(context, label){
-	console.log("text on click, " + label);
+function textOnclick(context, id){
+	console.log("text on click! id:" + id);
 }

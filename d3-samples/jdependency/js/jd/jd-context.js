@@ -20,7 +20,6 @@ function JDContext(container, urlContext, showExcel, i18n){
 	
 	/* i18n messages */	
 	this.i18n = (i18n != null) ? i18n: new JDI18n();
-	console.log(this.i18n);
 	
 	//the diagram's width & height
 	this.TEXT_WIDTH = 16;
@@ -53,6 +52,18 @@ function JDContext(container, urlContext, showExcel, i18n){
 	var arrow_path = "M2,2 L10,6 L2,10 L6,6 L2,2";	
 	marker.append("path").attr("d", arrow_path).attr("fill", "#000000;");
 	
+	//create path group
+	this.pg = this.svg.append("g");
+	this.pg.attr("id", "pg");
+	
+	//create diagram group
+	this.dg = this.svg.append("g");
+	this.dg.attr("id", "dg");
+	
+	//create background group
+	this.bg = this.svg.append("g");
+	this.bg.attr("id", "bg");
+	
 	this.matrix = new JDMatrix(this);
 }
 
@@ -67,7 +78,7 @@ function JDPosition(context, x, y){
 	
 	this.text = {};
 	this.text.x = this.x;
-	this.text.y = this.y + this.context.TEXT_HEIGHT;
+	this.text.y = this.y + this.context.TEXT_HEIGHT / 2 + this.context.TEXT_HEIGHT / 3;
 	
 	this.image = {};
 	this.image.x = this.x;

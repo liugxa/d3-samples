@@ -1,7 +1,7 @@
-function imageOnclick(context, label){
-	console.log("image on click, " + label);
+function imageOnclick(context, id, type){
+	console.log("image on click! id:" + id, ", type:" + type);
 }
 
-function textOnclick(context, label){
-	console.log("text on click, " + label);
+function textOnclick(context, id){
+	console.log("text on click! id:" + id);
 }

@@ -69,7 +69,7 @@ function JDCanvas(context, data){
 			var sPosition = new JDPosition(this.context, x1, y1);
 			var ePosition = new JDPosition(this.context, x2, y2);
 			
-			var jdDashLine = new JDLine(this.context, "v_" + i, sPosition, ePosition, "", "dash");
+			var jdDashLine = new JDLine(this.context, "x_" + i, sPosition, ePosition, "", "dash");
 			jdDashLine.show();
 		}
 		
@@ -81,7 +81,7 @@ function JDCanvas(context, data){
 			var sPosition = new JDPosition(this.context, x1, y1);
 			var ePosition = new JDPosition(this.context, x2, y2);
 			
-			var jdDashLine = new JDLine(this.context, "h_" + i, sPosition, ePosition, "", "dash");
+			var jdDashLine = new JDLine(this.context, "y_" + i, sPosition, ePosition, "", "dash");
 			jdDashLine.show();
 		}
 	}
@@ -102,7 +102,7 @@ function JDSubItems(context, jdId, position, items, parentDiagram){
 			for(var i=0;i<this.items.length;i++){
 				var item = items[i];
 				//get item position
-				var itemId = "s" + i;
+				var itemId = this.jdId + "_" + i;
 				var ix = this.position.x; 
 				var iy = this.position.y + i * cyOffset * this.context.yUnit;
 				var iPosition = new JDPosition(this.context, ix, iy);

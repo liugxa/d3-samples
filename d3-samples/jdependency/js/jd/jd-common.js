@@ -19,7 +19,7 @@ function JDDiagram(context, jdId, position, item){
 		});
 		
 		//create group
-		var group = this.context.svg.append("g")
+		var group = this.context.dg.append("g").attr("id", this.jdId);
 		group.call(drag);
 		
 		//create text
@@ -30,7 +30,7 @@ function JDDiagram(context, jdId, position, item){
 		
 		//crete image
 		var jdImageId = this.jdId + "_image";
-		this.jdImage = new JDImage(this.context, jdImageId, group, this.position, this.getImgSrc(this.item), this.item.id, this.getTooltip(this.item));
+		this.jdImage = new JDImage(this.context, jdImageId, group, this.position, this.item.id, this.getImgSrc(this.item), this.getType(this.item), this.getTooltip(this.item));
 		this.jdImage.show();
 	}
 	
@@ -167,7 +167,8 @@ function JDPathLine(context, jdId, sPosition, ePosition, text, style){
 	
 	this.show = function(){
 		this.style = (this.style) ? this.style: "dash";
-		var group = this.context.svg.append("g").attr("id", this.jdId);
+		//var group = this.context.svg.append("g").attr("id", this.jdId);
+		var group = this.context.pg.append("g").attr("id", this.jdId);
 		
 		var path = group.append("path").attr("id", this.jdId + "_path");
 		path.attr("d", this.getD(this.sPosition, this.ePosition));
@@ -215,9 +216,9 @@ function JDLine(context, jdId, sPosition, ePosition, text, style){
 	
 	this.show = function(){
 		this.style = (this.style) ? this.style: "dash";
-		var group = this.context.svg.append("g");
+		var group = this.context.bg.append("g").attr("id", this.jdId);
 		
-		var line = group.append("line").attr("id", this.jdId);
+		var line = group.append("line").attr("id", this.jdId + "_line");
 		line.attr("x1", this.sPosition.x).attr("y1", this.sPosition.y);
 		line.attr("x2", this.ePosition.x).attr("y2", this.ePosition.y);
 		line.style("stroke", "gray").style("stroke-width", "1");
@@ -235,13 +236,14 @@ function JDLine(context, jdId, sPosition, ePosition, text, style){
 }
 
 //the below item is base on the group object
-function JDImage(context, jdId, group, position, src, id, tooltip){
+function JDImage(context, jdId, group, position, id, src, type, tooltip){
 	this.context = context;
 	this.jdId = jdId;
 	this.group = group;
 	this.position = position;
-	this.src = src;
 	this.id = id;
+	this.src = src;
+	this.type = type;
 	this.tooltip = tooltip;
 	
 	this.show = function(){
@@ -253,7 +255,7 @@ function JDImage(context, jdId, group, position, src, id, tooltip){
 		img.attr("width", this.context.IMAGE_WIDTH).attr("height", this.context.IMAGE_HEIGHT);
 		img.attr("xlink:href", this.src);
 		img.on("dblclick", function(){
-			window.imageOnclick(_self.context, _self.id);
+			window.imageOnclick(_self.context, _self.id, _self.type);
 		})
 		
 		//attach the tooltip 
