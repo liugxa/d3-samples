@@ -45,3 +45,12 @@ div.tooltip {
 	-moz-opacity:0.8;
 	opacity:0.8;
 }
+
+text a:link, text a:visited {
+	text-decoration: none;
+	fill: #000000;
+}
+text a:hover, text a:active {
+	text-decoration: underline;
+	fill: green;
+}

@@ -24,8 +24,8 @@ function JDDiagram(context, jdId, position, item){
 		
 		//create text
 		var jdTextId = this.jdId + "_text";
-		var jdText = (this.item.type != "and" && this.item.type != "or") ? (this.item.name + "(" + this.item.id + ")") : "";
-		this.jdText = new JDText(this.context, jdTextId, group, this.position, jdText);
+		var jdLabel = (this.item.type != "and" && this.item.type != "or") ? this.item.name : "";
+		this.jdText = new JDText(this.context, jdTextId, group, this.position, jdLabel, this.item.id);
 		this.jdText.show();
 		
 		//crete image
@@ -157,25 +157,20 @@ function JDDiagram(context, jdId, position, item){
 	}	
 }
 
-function JDPathLine(context, jdId, sPosition, ePosition, text, style){
+function JDPathLine(context, jdId, sPosition, ePosition, text){
 	this.context = context;
 	this.jdId = jdId;
 	this.sPosition = sPosition;
 	this.ePosition = ePosition;
 	this.text = text;
-	this.style = style;
 	
 	this.show = function(){
-		this.style = (this.style) ? this.style: "dash";
 		//var group = this.context.svg.append("g").attr("id", this.jdId);
 		var group = this.context.pg.append("g").attr("id", this.jdId);
 		
 		var path = group.append("path").attr("id", this.jdId + "_path");
 		path.attr("d", this.getD(this.sPosition, this.ePosition));
 		path.attr("style", "stroke: black").attr("marker-mid","url(#arrow)");
-		
-		//the line style. By default, showing dash line
-		if(this.style == "dash") path.style("stroke-dasharray", ("3, 3"));
 		
 		var t = group.append("text").attr("id", this.jdId + "_text");
 		t.style("text-anchor", "middle").style("font-size", "9pt");
@@ -200,38 +195,60 @@ function JDPathLine(context, jdId, sPosition, ePosition, text, style){
 	}
 	
 	this.getD = function(sPosition, ePosition){
-		var dx = ePosition.center.x - sPosition.center.x; var dy = ePosition.center.y - sPosition.center.y;
-		var mx = sPosition.center.x + dx / 2; var my = sPosition.center.y + dy / 2;
-		return "M" + sPosition.center.x + "," + sPosition.center.y +  " T" + mx + "," + my + " T" + ePosition.center.x + "," + ePosition.center.y;
+		var dx = ePosition.line.x - sPosition.line.x; var dy = ePosition.line.y - sPosition.line.y;
+		var mx = sPosition.line.x + dx / 2; var my = sPosition.line.y + dy / 2;
+		return "M" + sPosition.line.x + "," + sPosition.line.y +  " T" + mx + "," + my + " T" + ePosition.line.x + "," + ePosition.line.y;
 	}
 }
 
-function JDLine(context, jdId, sPosition, ePosition, text, style){
+function JDLine(context, jdId, sPosition, ePosition, text){
 	this.context = context;
 	this.jdId = jdId;
 	this.sPosition = sPosition;
 	this.ePosition = ePosition;
 	this.text = text;
-	this.style = style;
 	
 	this.show = function(){
-		this.style = (this.style) ? this.style: "dash";
+		var group = this.context.pg.append("g").attr("id", this.jdId);
+		
+		var line = group.append("line").attr("id", this.jdId + "_line");
+		line.attr("x2", this.ePosition.line.x).attr("y2", this.ePosition.line.y);
+		line.attr("x1", this.sPosition.line.x).attr("y1", this.sPosition.line.y);
+		line.style("stroke", "gray").style("stroke-width", "1");
+		line.style("stroke-dasharray", ("3, 3"));
+	}
+	
+	this.move = function(sPosition, ePosition){
+		this.sPosition = sPosition; this.ePosition = ePosition;
+		var line = svg.select("#" + this.jdId + "_line");
+		line.attr("x1", this.sPosition.line.x).attr("y1", this.sPosition.line.y);
+		line.attr("x2", this.ePosition.line.x).attr("y2", this.ePosition.line.y);
+	}	
+}
+
+//draw the line on the "bg" group
+function JDUnderLine(context, jdId, sPosition, ePosition, text){
+	this.context = context;
+	this.jdId = jdId;
+	this.sPosition = sPosition;
+	this.ePosition = ePosition;
+	this.text = text;
+	
+	this.show = function(){
 		var group = this.context.bg.append("g").attr("id", this.jdId);
 		
 		var line = group.append("line").attr("id", this.jdId + "_line");
-		line.attr("x1", this.sPosition.x).attr("y1", this.sPosition.y);
-		line.attr("x2", this.ePosition.x).attr("y2", this.ePosition.y);
+		line.attr("x1", this.sPosition.line.x).attr("y1", this.sPosition.line.y);
+		line.attr("x2", this.ePosition.line.x).attr("y2", this.ePosition.line.y);
 		line.style("stroke", "gray").style("stroke-width", "1");
-		
-		//the line style. By default, showing dash line
-		if(this.style == "dash") line.style("stroke-dasharray", ("3, 3"));
+		line.style("stroke-dasharray", ("3, 3"));
 	}
 	
 	this.move = function(sPosition, ePosition){
 		this.sPosition = sPosition; this.ePosition = ePosition;
 		var line = svg.select("#" + this.jdId);
-		line.attr("x1", this.sPosition.x).attr("y1", this.sPosition.y);
-		line.attr("x2", this.ePosition.x).attr("y2", this.ePosition.y);
+		line.attr("x1", this.sPosition.line.x).attr("y1", this.sPosition.line.y);
+		line.attr("x2", this.ePosition.line.x).attr("y2", this.ePosition.line.y);
 	}	
 }
 
@@ -295,27 +312,63 @@ function JDImage(context, jdId, group, position, id, src, type, tooltip){
 	}
 }
 
-function JDText(context, jdId, group, position, text){
+function JDText(context, jdId, group, position, label, xlink){
 	this.context = context;
 	this.jdId = jdId;
 	this.group = group;
 	this.position = position;
-	this.text = text;
+	this.label = label;
+	this.xlink = xlink;
 	
 	this.show = function(){
-		var _self = this;
+		var _self = this; var LABEL_LENGTH = 8;
+		
 		var t = this.group.append("text");
 		t.attr("id", this.jdId);
 		t.attr("x", this.position.text.x).attr("y", this.position.text.y);
 		
 		t.attr("width", this.context.TEXT_WIDTH).attr("height", this.context.TEXT_HEIGHT);
 		t.style("font-family", "Arial").style("font-size", "8.5pt").style("weight", "bold");
-		t.text(this.text);
 		
-		t.style("cursor", "pointer").on("click", function(){
-			var params = _self.text.substring(_self.text.indexOf('(') + 1, _self.text.indexOf(')'));
-			window.textOnclick(_self.context, params);
-		})
+		//show the text label with tooltip
+		var tLabel = this.label;
+		if(tLabel.length > LABEL_LENGTH) {
+			tLabel = tLabel.substring(0, LABEL_LENGTH) + "_...";
+			t.on("mouseenter", function(){
+				t.style("cursor", "pointer");
+				var tp_x = svg.event.pageX + 10;
+				var tp_y = svg.event.pageY + 10;
+				
+				var tp = svg.select("body").append("div").attr("id", "div-tooltip").attr("class", "tooltip");
+				tp.append("span").style("display", "block").style("height", "15px").text(_self.label);
+				
+				//text(tooltip);
+				tp.style("left", tp_x + "px").style("top", tp_y + "px");
+			});
+			t.on("mousemove", function(){
+				//console.log("event.pageX: " + PB.event.pageX + " | event.pageY: " + PB.event.pageY);
+				var tp_x = svg.event.pageX + 10;
+				var tp_y = svg.event.pageY + 10;
+				
+				var tp = svg.select("#div-tooltip");
+				tp.style("left", tp_x + "px").style("top", tp_y + "px");
+			});
+			t.on("mouseout", function(){
+				//console.log("mouse out!");
+				var tp = svg.select("#div-tooltip");
+				tp.remove();
+			});		
+		}
+		t.text(tLabel + " ");
+		
+		//show the xlink
+		if(this.label && this.label != ""){
+			var a = t.append("a");
+			a.attr("xlink:href", "javascript:void(0)").text("(" + this.xlink + ")");
+			a.on("click", function(){
+				window.textOnclick(_self.context, _self.xlink);
+			})
+		}
 	}
 	
 	this.move = function(position){

@@ -19,41 +19,6 @@
 				jdCanvas.hideDependencies();
 			}
 			
-			function getDependencies1(){
-				var r = {};
-				
-				//item
-				var item = {};
-				item.id = 0;
-				item.name = "jobarray";
-				item.type = "jobarray";
-				item.status = "pending";
-				r.item = item;
-				
-				//the parent
-				var item = {};
-				item.id = 100;
-				item.name = "job100";
-				item.type = "job";
-				item.status = "waiting";
-				item.condition = "*Done";
-				r.parentItem = item;
-				
-				//sub items
-				var subItems = [];
-				for(var i=0;i<3;i++){
-					var item = {};
-					item.id = 300 + i;
-					item.name = 300 + i;
-					item.type = "job";
-					item.status = "waiting";
-					subItems.push(item);
-				}
-				r.subItems = subItems;
-				
-				return r;
-			}
-			
 			function getDependencies2(){
 				var r = {};
 				
@@ -69,14 +34,14 @@
 				var parentItem = {};
 				parentItem.id = "-";
 				parentItem.type = "and";
-				parentItem.condition = "done(123) && exit(123)";
+				parentItem.condition = "";
 				
 				var parentItems = [];
 				//another logical item
 				var andItem1 = {};
 				andItem1.id = "-";
 				andItem1.type = "or";
-				andItem1.condition = "done(223) && exit(223)";
+				andItem1.condition = "";
 				var andItems1 = [];
 				for(var i=0;i<10;i++){
 					var item = {};
@@ -94,7 +59,7 @@
 				var andItem2 = {};
 				andItem2.id = "-";
 				andItem2.type = "or";
-				andItem2.condition = "done(223) || exit(223)";				
+				andItem2.condition = "";				
 				var andItems2 = [];
 				for(var i=0;i<2;i++){
 					var item = {};
@@ -102,11 +67,11 @@
 					item.name = "jobarray" + item.id;
 					item.type = "jobarray";
 					item.status = "waiting";
-					item.condition = "exit";
+					item.condition = "!exit";
 					andItems2.push(item);
 				}
 				andItem2.items = andItems2;
-				parentItems.push(andItem2);
+				andItems1.push(andItem2);
 				
 				parentItem.items = parentItems;
 				r.parentItem = parentItem;
