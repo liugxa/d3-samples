@@ -28,10 +28,10 @@
 			
 			function showProgressBar(div, times){
 				//initialize the context
-				var context = new ProgressBarContext(div);
+				var context = new jProgress.ProgressBarContext(div);
 				
 				//initilize the progress bar object
-				var progressBar = new ProgressBar(context, times, "done");
+				var progressBar = new jp.ProgressBar(context, times, "done");
 				progressBar.show();
 			}
 			

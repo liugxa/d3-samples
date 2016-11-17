@@ -8,7 +8,7 @@ var jProgress = {};
 
 //using the d3 or rave2
 //var jProgress.rave = d3;
-var jProgress.rave = rave;
+jProgress.rave = rave;
 
 //attached the jProgress on the windows object
 window.jProgress = window.~ = jProgress;
@@ -143,8 +143,7 @@ jProgress.ProgressBar = function(context, times, pStatus){
 				}
 				break;
 		}
-		console.log("check times[" + this.pStatus + "]: "+ r);
-		console.log(this.times);
+		console.log("Status[" + this.pStatus + "]:", r, ", Times:", this.times);
 		return r;
 	}
 	
