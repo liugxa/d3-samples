@@ -3,16 +3,15 @@
 	<head>
 		<script src="../js/svg/d3.js" charset="utf-8"></script>
 		<script src="../js/svg/rave.js" charset="utf-8"></script>
-		<script src="../js/jd/jd-plugin.js" charset="utf-8"></script>
-		<script src="../js/jd/jd.js" charset="utf-8"></script>
+		<script src="../js/jDependency.js" charset="utf-8"></script>
 	</head>
 		
 	<body>
 		<div id="canvas" style="width:820px;height:600px"/>
 		<script>
 			var urlContext = window.location.href + "/../..";
-			var jdContext = new JDContext("#canvas", urlContext, true);
-			var jdCanvas = new JDCanvas(jdContext);
+			var jdContext = new jd.JDContext("#canvas", urlContext, true);
+			var jdCanvas = new jd.JDCanvas(jdContext);
 			
 			function getDependencies(){
 				var r = {};

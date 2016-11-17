@@ -3,8 +3,8 @@
 	<head>
 		<script src="./js/svg/d3.js" charset="utf-8"></script>
 		<script src="./js/svg/rave.js" charset="utf-8"></script>
-		<script src="./js/jd.js" charset="utf-8"></script>
-		<link rel="stylesheet" type="text/css" href="./css/jd.css"/>
+		<script src="./js/jDependency.js" charset="utf-8"></script>
+		<link rel="stylesheet" type="text/css" href="./css/jDependency.css"/>
 	</head>
 		
 	<body>
@@ -12,8 +12,8 @@
 		<div id="canvas" style="width:820px;height:600px"/>
 		<script>
 			var urlContext = window.location.href + "/..";
-			var jdContext = new JDContext("#canvas", urlContext, true);
-			var jdCanvas = new JDCanvas(jdContext);
+			var jdContext = new jd.JDContext("#canvas", urlContext, true);
+			var jdCanvas = new jd.JDCanvas(jdContext);
 			
 			function doHideDependencies(){
 				jdCanvas.hideDependencies();
