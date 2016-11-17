@@ -1,6 +1,72 @@
+/*!
+ * jProgress JavaScript Library v0.0.1
+ *
+ * Date: 2016-11-17
+ */
 
-function ProgressBarContext(container, i18n){
-	this.container = PB.select(container);
+var jProgress = {};
+
+//using the d3 or rave2
+//var jProgress.rave = d3;
+var jProgress.rave = rave;
+
+//attached the jProgress on the windows object
+window.jProgress = window.~ = jProgress;
+
+jProgress._I18n = function(){
+	this.get = function(name){
+		var r = {
+			"SMT": {"name": "SMT", "value": "Submitted Time"},
+			"CT": {"name": "CT", "value": "Current Time"},
+			"EST": {"name": "EST", "value": "Estimated Start Time"},
+			"ET": {"name": "ET", "value": "End Time"},
+			"SPT": {"name": "SPT", "value": "Suspended Time"},
+			"PTL": {"name": "PTL", "value": "Pending Time Limit"},
+			"EST=PTL": {"name": "PTL", "value": "Pending Time Limit"},
+			"ST": {"name": "ST", "value": "Start Time"},
+			"EET": {"name": "EET", "value": "Estimated End Time"},
+			"RTL": {"name": "RTL", "value": "Run Time Limit"},
+			"EET=RTL": {"name": "EET=RTL", "value": "Run Time Limit"},
+			"submitted":{"name": "submitted", "value": "Submitted"},
+			"run.time": {"name": "run.time", "value": "Run Time"},
+			"running.time": {"name": "running.time", "value": "Running Time"},
+			"pending.duration": {"name": "pending.duration", "value": "Pending Duration"},
+			"suspended.duration": {"name": "suspended.duration", "value": "Suspended Duration"},
+			"time.remaining": {"name": "time.remaining", "value": "Time Remaining"},
+			"est.time.empty": {"name": "est.time.empty", "value": "There is no <br> estimated start time <br> available for this <br> job"},
+			"eet.time.empty": {"name": "eet.time.empty", "value": "There is no <br> estimated end time <br> available for this <br> job"},
+		};
+		return r[name];
+	}
+}
+
+jProgress.Colors = function(){
+	this.COLOR_BLACK = "rgb(54,54,54)";
+	this.COLOR_WHITE = "rgb(255,255,255)";
+	this.COLOR_DARK_GRAY = "rgb(118,119,119)";
+	this.COLOR_GRAY = "#dddddd";
+	this.COLOR_YELLOW = "#f0cc00";
+	this.COLOR_GREEN = "#60942c";
+	this.COLOR_RED = "#b2293d";
+	this.COLOR_PINK = "#e17e2d";
+
+	this.COLOR_RUNNING = "#60942c";
+	this.COLOR_WAITING = "#fff69b";
+	this.COLOR_SUSPENDED = "#e17e2d";
+	this.COLOR_PENDING = "#f0cc00";
+	this.COLOR_EXITED = "#b2293d";
+	this.COLOR_DONE = "rgb(174, 203, 160)";
+	this.COLOR_HOLD = "#eeeef0";
+	
+	this.COLOR_PENDING_OPT="rgb(247, 230, 138)";
+	this.COLOR_RUNNING_OPT="rgb(174, 203, 160)";
+	this.COLOR_SUSPENDED_OPT="rgb(226, 127, 48)";
+	this.COLOR_TEXT_REGULAR = "#363636";
+	this.COLOR_TEXT_ITALIC = "#757575";
+}
+
+jProgress.ProgressBarContext = function(container, i18n){
+	this.container = jProgress.rave.select(container);
 	this.width = this.container.style("width");
 	this.height = this.container.style("height");
 	
@@ -18,13 +84,13 @@ function ProgressBarContext(container, i18n){
 	this.showTimerBar = true;
 	
 	/* i18n messages */	
-	this.i18n = (i18n != null) ? i18n: new _I18n();
+	this.i18n = (i18n != null) ? i18n: new jProgress._I18n();
 	
 	/* the statistic colors */
-	this.colors = new Colors();
+	this.colors = new jProgress.Colors();
 	
 	/* the instance of duration */
-	this.dateFormat = new DateFormat();
+	this.dateFormat = new jProgress.DateFormat();
 	
 	//the 2 lays are capable of the size
 	this.yCount = (this.showTimerBar == true) ? 4 : 2;
@@ -36,7 +102,7 @@ function ProgressBarContext(container, i18n){
 	if(this.showTimerName != true) this.yMargin = this.yUnit * 0.6;
 }
 
-function ProgressBar(context, times, pStatus){
+jProgress.ProgressBar = function(context, times, pStatus){
 	this.context = context;
 	this.times = times;
 	this.pStatus = pStatus.toUpperCase();
@@ -87,21 +153,21 @@ function ProgressBar(context, times, pStatus){
 			var p = null;
 			switch(this.pStatus){
 				case "PENDING":
-					p = new PendingProgressBar(this.context, this.times.smtTime, this.times.ctTime, this.times.estTime, this.times.ptlTime);
+					p = new jProgress.PendingProgressBar(this.context, this.times.smtTime, this.times.ctTime, this.times.estTime, this.times.ptlTime);
 					break;
 				case "RUNNING":
-					p = new RunningProgressBar(this.context, this.times.smtTime, this.times.stTime, this.times.ctTime, this.times.eetTime, this.times.rtlTime);
+					p = new jProgress.RunningProgressBar(this.context, this.times.smtTime, this.times.stTime, this.times.ctTime, this.times.eetTime, this.times.rtlTime);
 					break;
 				case "DONE":
-					p = new DoneProgressBar(this.context, this.times.smtTime, this.times.stTime, this.times.etTime);
+					p = new jProgress.DoneProgressBar(this.context, this.times.smtTime, this.times.stTime, this.times.etTime);
 					break;
 				case "EXIT":
-					p = new ExitedProgressBar(this.context, this.times.smtTime, this.times.stTime, this.times.etTime);
+					p = new jProgress.ExitedProgressBar(this.context, this.times.smtTime, this.times.stTime, this.times.etTime);
 					break;
 				case "USUSP":
 				case "SSUSP":
 				case "PSUSP":
-					p = new SuspendedProgressBar(this.context, this.times.smtTime, this.times.stTime, this.times.sptTime, this.times.ctTime);
+					p = new jProgress.SuspendedProgressBar(this.context, this.times.smtTime, this.times.stTime, this.times.sptTime, this.times.ctTime);
 					break;
 			}
 			
@@ -147,19 +213,19 @@ function ProgressBar(context, times, pStatus){
 		//showing the start time
 		var x1 = x;
 		var y1 = y + this.context.yUnit;
-		r.push(new TimerBar(this.context, "startTime", p.getStartTime(), x1, y1));
+		r.push(new jProgress.TimerBar(this.context, "startTime", p.getStartTime(), x1, y1));
 
 		//showing the end time
 		var w = (p.getEndTime() - p.getStartTime()) * this.context.xUnit;
 		var x2 = x1 + w;
 		var y2 = y1;
-		r.push(new TimerBar(this.context, "endTime", p.getEndTime(), x2, y2));
+		r.push(new jProgress.TimerBar(this.context, "endTime", p.getEndTime(), x2, y2));
 		
 		return r;
 	}	
 }
 
-function Progresser(context, x, y, width, color, tooltip){
+jProgress.Progresser = function(context, x, y, width, color, tooltip){
 	this.context = context;
 	this.x = x;
 	this.y = y;
@@ -178,13 +244,13 @@ function Progresser(context, x, y, width, color, tooltip){
 		
 		//attach the mouse event
 		if(this.tooltip) {
-			var tp = new Tooltip(this.context, this.x, this.y, this.tooltip);
+			var tp = new jProgress.Tooltip(this.context, this.x, this.y, this.tooltip);
 			tp.attach(r);
 		}
 	}
 }
 
-function ProgresserBreakLine(context, x, y, width, color, tooltip){
+jProgress.ProgresserBreakLine = function(context, x, y, width, color, tooltip){
 	this.context = context;
 	this.x = x; 
 	this.y = y;
@@ -199,15 +265,16 @@ function ProgresserBreakLine(context, x, y, width, color, tooltip){
 		//var pEndTime = new Date(pMilliseconds);
 		
 		var pWidth = this.width * 0.6;
-		var progresser = new Progresser(this.context, this.x, this.y, pWidth, this.color, this.tooltip);
+		var progresser = new jProgress.Progresser(this.context, this.x, this.y, pWidth, this.color, this.tooltip);
 		progresser.show();
 		
 		var bWidth = this.width * 0.4;
-		var breakLine = new BreakLine(this.context, this.x + pWidth, this.y, bWidth);
+		var breakLine = new jProgress.BreakLine(this.context, this.x + pWidth, this.y, bWidth);
 		//breakLine.show();
 	}
 }
-function BreakLine(context, x, y, width, tooltip){
+
+jProgress.BreakLine = function(context, x, y, width, tooltip){
 	this.context = context;
 	this.x = x; 
 	this.y = y;
@@ -257,7 +324,7 @@ function BreakLine(context, x, y, width, tooltip){
 	}
 }
 
-function BreakLineSymbol(context, x, y, width, tooltip){
+jProgress.BreakLineSymbol = function(context, x, y, width, tooltip){
 	this.context = context;
 	this.x = x; 
 	this.y = y;
@@ -267,7 +334,7 @@ function BreakLineSymbol(context, x, y, width, tooltip){
 	
 	this.show = function(){
 		var bWidth = this.width * 0.6;
-		var breakLine = new BreakLine(this.context, this.x, this.y, bWidth);
+		var breakLine = new jProgress.BreakLine(this.context, this.x, this.y, bWidth);
 		breakLine.show();
 		
 		var tfont = this.width * 0.8 + "px";
@@ -276,12 +343,12 @@ function BreakLineSymbol(context, x, y, width, tooltip){
 		t.attr("x", this.x + bWidth).attr("y", (this.y + this.context.yUnit * 0.8)).attr("width", tWidth);
 		t.style("font-family", "Arial").text(" ? ").style("font-size", tfont);
 		
-		var tp = new Tooltip(this.context, this.x, this.y, tooltip);
+		var tp = new jProgress.Tooltip(this.context, this.x, this.y, tooltip);
 		tp.attach(t);
 	}
 }
 
-function BreakLineTime(context, x, y, width, time, tooltip){
+jProgress.BreakLineTime = function(context, x, y, width, time, tooltip){
 	this.context = context;
 	this.x = x; 
 	this.y = y;
@@ -292,150 +359,15 @@ function BreakLineTime(context, x, y, width, time, tooltip){
 	
 	this.show = function(){
 		var bWidth = this.width - (this.context.yUnit * 0.3);
-		var breakLine = new BreakLine(this.context, this.x, this.y, bWidth);
+		var breakLine = new jProgress.BreakLine(this.context, this.x, this.y, bWidth);
 		breakLine.show();
 		
-		var time = new Timer(this.context, "PTL", this.time, this.x + bWidth, y, this.context.colors.COLOR_RED);
+		var time = new jProgress.Timer(this.context, "PTL", this.time, this.x + bWidth, y, this.context.colors.COLOR_RED);
 		time.show();
 	}
 }
 
-
-
-//using the d3 or rave2
-//var PB = d3;
-var PB = rave;
-
-function Colors(){
-	this.COLOR_BLACK = "rgb(54,54,54)";
-	this.COLOR_WHITE = "rgb(255,255,255)";
-	this.COLOR_DARK_GRAY = "rgb(118,119,119)";
-	this.COLOR_GRAY = "#dddddd";
-	this.COLOR_YELLOW = "#f0cc00";
-	this.COLOR_GREEN = "#60942c";
-	this.COLOR_RED = "#b2293d";
-	this.COLOR_PINK = "#e17e2d";
-
-	this.COLOR_RUNNING = "#60942c";
-	this.COLOR_WAITING = "#fff69b";
-	this.COLOR_SUSPENDED = "#e17e2d";
-	this.COLOR_PENDING = "#f0cc00";
-	this.COLOR_EXITED = "#b2293d";
-	this.COLOR_DONE = "rgb(174, 203, 160)";
-	this.COLOR_HOLD = "#eeeef0";
-	
-	this.COLOR_PENDING_OPT="rgb(247, 230, 138)";
-	this.COLOR_RUNNING_OPT="rgb(174, 203, 160)";
-	this.COLOR_SUSPENDED_OPT="rgb(226, 127, 48)";
-	this.COLOR_TEXT_REGULAR = "#363636";
-	this.COLOR_TEXT_ITALIC = "#757575";
-}
-
-function DateFormat(){
-	this.formatTime = function(date){
-		var format = PB.time.format("%Y-%m-%d");
-		return format(date);
-	}
-	
-	this.formatStamp = function(date){
-		var format = PB.time.format("%H:%M:%S");
-		return format(date);	
-	}
-	
-	this.format = function(date){
-		var format = PB.time.format("%Y-%m-%d %H:%M:%S");
-		return format(date);
-	}
-	
-	this.duration = function(date){
-		var r = "";
-		
-		var y = date.getUTCFullYear() - 1970;
-		if(y != 0) r = r + y + "Y" + " ";
-		
-		var m = date.getUTCMonth();
-		if(m != 0) r = r + m + "m" + " ";
-		
-		var d = date.getUTCDate() - 1;
-		if(d != 0) r = r + d + "D" + " ";
-		
-		var h = date.getUTCHours();
-		if(h != 0) r = r + h + "H" + " ";
-		
-		var mi = date.getUTCMinutes();
-		if(mi != 0) r = r + mi + "M" + " ";
-		
-		var s = date.getUTCSeconds();
-		if(s != 0) r = r + s + "S" + " ";
-		
-		return (r != "") ? r : "0";
-	}
-}
-
-function Tooltip(context, x, y, tooltip){
-	this.context = context; 
-	this.x = x; 
-	this.y = y;
-	this.tooltip = tooltip;
-	
-	this.attach = function(object){
-		object.on("mouseenter", function(){
-			object.style("cursor", "pointer");
-			var tp_x = PB.event.pageX + 10;
-			var tp_y = PB.event.pageY + 10;
-			
-			var tp = PB.select("body").append("div").attr("id", "div-tooltip").attr("class", "tooltip");
-			
-			var texts = tooltip.split("<br>");
-			for(var i=0;i<texts.length;i++) tp.append("span").style("display", "block").style("height", "15px").text(texts[i]);
-			
-			//text(tooltip);
-			tp.style("left", tp_x + "px").style("top", tp_y + "px");
-		});
-		
-		object.on("mousemove", function(){
-			//console.log("event.pageX: " + PB.event.pageX + " | event.pageY: " + PB.event.pageY);
-			var tp_x = PB.event.pageX + 10;
-			var tp_y = PB.event.pageY + 10;
-			
-			var tp = PB.select("#div-tooltip");
-			tp.style("left", tp_x + "px").style("top", tp_y + "px");
-		});
-		
-		object.on("mouseout", function(){
-			//console.log("mouse out!");
-			var tp = PB.select("#div-tooltip");
-			tp.remove();
-		});
-	}
-}
-function _I18n(){
-	this.get = function(name){
-		var r = {
-			"SMT": {"name": "SMT", "value": "Submitted Time"},
-			"CT": {"name": "CT", "value": "Current Time"},
-			"EST": {"name": "EST", "value": "Estimated Start Time"},
-			"ET": {"name": "ET", "value": "End Time"},
-			"SPT": {"name": "SPT", "value": "Suspended Time"},
-			"PTL": {"name": "PTL", "value": "Pending Time Limit"},
-			"EST=PTL": {"name": "PTL", "value": "Pending Time Limit"},
-			"ST": {"name": "ST", "value": "Start Time"},
-			"EET": {"name": "EET", "value": "Estimated End Time"},
-			"RTL": {"name": "RTL", "value": "Run Time Limit"},
-			"EET=RTL": {"name": "EET=RTL", "value": "Run Time Limit"},
-			"submitted":{"name": "submitted", "value": "Submitted"},
-			"run.time": {"name": "run.time", "value": "Run Time"},
-			"running.time": {"name": "running.time", "value": "Running Time"},
-			"pending.duration": {"name": "pending.duration", "value": "Pending Duration"},
-			"suspended.duration": {"name": "suspended.duration", "value": "Suspended Duration"},
-			"time.remaining": {"name": "time.remaining", "value": "Time Remaining"},
-			"est.time.empty": {"name": "est.time.empty", "value": "There is no <br> estimated start time <br> available for this <br> job"},
-			"eet.time.empty": {"name": "eet.time.empty", "value": "There is no <br> estimated end time <br> available for this <br> job"},
-		};
-		return r[name];
-	}
-}
-function Timer(context, name, time, x, y, color){
+jProgress.Timer = function(context, name, time, x, y, color){
 	this.context = context;
 	this.name = name;
 	this.time = time;
@@ -478,7 +410,7 @@ function Timer(context, name, time, x, y, color){
 			var t = this.context.i18n.get(this.name);
 			var tMessage = t.value + ": <br> " + this.context.dateFormat.format(this.time);
 			
-			var tp = new Tooltip(this.context, this.x, this.y, tMessage);
+			var tp = new jProgress.Tooltip(this.context, this.x, this.y, tMessage);
 			tp.attach(p);
 		}
 		
@@ -495,7 +427,7 @@ function Timer(context, name, time, x, y, color){
 	}
 }
 
-function TimerBar(context, name, time, x, y){
+jProgress.TimerBar = function(context, name, time, x, y){
 	this.context = context;
 	this.name = name;
 	this.time = time;
@@ -567,7 +499,7 @@ function TimerBar(context, name, time, x, y){
 	}
 }
 
-function DoubleTimer(context, name, time, x, y, color1, color2){
+jProgress.DoubleTimer = function(context, name, time, x, y, color1, color2){
 	this.context = context;
 	this.name = name;
 	this.time = time;
@@ -581,12 +513,91 @@ function DoubleTimer(context, name, time, x, y, color1, color2){
 	this.show = function(){
 		var t1_x = this.x;
 		var t1_y = this.y;
-		var timer1 = new Timer(this.context, "", this.time, t1_x, t1_y, this.color1);
+		var timer1 = new jProgress.Timer(this.context, "", this.time, t1_x, t1_y, this.color1);
 		timer1.show();
 		
 		var t2_x = t1_x;
 		var t2_y = t1_y - timer1.height / 4;
-		var timer2 = new Timer(this.context, this.name, this.time, t2_x, t2_y, this.color2);
+		var timer2 = new jProgress.Timer(this.context, this.name, this.time, t2_x, t2_y, this.color2);
 		timer2.show();
+	}
+}
+
+jProgress.DateFormat = function(){
+	this.formatTime = function(date){
+		var format = jProgress.rave.time.format("%Y-%m-%d");
+		return format(date);
+	}
+	
+	this.formatStamp = function(date){
+		var format = jProgress.rave.time.format("%H:%M:%S");
+		return format(date);	
+	}
+	
+	this.format = function(date){
+		var format = jProgress.rave.time.format("%Y-%m-%d %H:%M:%S");
+		return format(date);
+	}
+	
+	this.duration = function(date){
+		var r = "";
+		
+		var y = date.getUTCFullYear() - 1970;
+		if(y != 0) r = r + y + "Y" + " ";
+		
+		var m = date.getUTCMonth();
+		if(m != 0) r = r + m + "m" + " ";
+		
+		var d = date.getUTCDate() - 1;
+		if(d != 0) r = r + d + "D" + " ";
+		
+		var h = date.getUTCHours();
+		if(h != 0) r = r + h + "H" + " ";
+		
+		var mi = date.getUTCMinutes();
+		if(mi != 0) r = r + mi + "M" + " ";
+		
+		var s = date.getUTCSeconds();
+		if(s != 0) r = r + s + "S" + " ";
+		
+		return (r != "") ? r : "0";
+	}
+}
+
+jProgress.Tooltip = function(context, x, y, tooltip){
+	this.context = context; 
+	this.x = x; 
+	this.y = y;
+	this.tooltip = tooltip;
+	
+	this.attach = function(object){
+		object.on("mouseenter", function(){
+			object.style("cursor", "pointer");
+			var tp_x = jProgress.rave.event.pageX + 10;
+			var tp_y = jProgress.rave.event.pageY + 10;
+			
+			var tp = jProgress.rave.select("body").append("div").attr("id", "div-tooltip").attr("class", "tooltip");
+			
+			var texts = tooltip.split("<br>");
+			for(var i=0;i<texts.length;i++) tp.append("span").style("display", "block").style("height", "15px").text(texts[i]);
+			
+			//text(tooltip);
+			tp.style("left", tp_x + "px").style("top", tp_y + "px");
+		});
+		
+		object.on("mousemove", function(){
+			//console.log("event.pageX: " + jProgress.rave.event.pageX + " | event.pageY: " + jProgress.rave.event.pageY);
+			var tp_x = jProgress.rave.event.pageX + 10;
+			var tp_y = jProgress.rave.event.pageY + 10;
+			
+			var tp = jProgress.rave.select("#div-tooltip");
+			tp.style("left", tp_x + "px").style("top", tp_y + "px");
+		});
+		
+		object.on("mouseout", function(){
+			//console.log("mouse out!");
+			var tp = jProgress.rave.select("#div-tooltip");
+			tp.remove();
+		});
 	}
 }
