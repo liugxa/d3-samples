@@ -11,7 +11,7 @@ var jProgress = {};
 jProgress.rave = rave;
 
 //attached the jProgress on the windows object
-window.jProgress = window.~ = jProgress;
+window.jProgress = window.jp = jProgress;
 
 jProgress._I18n = function(){
 	this.get = function(name){
