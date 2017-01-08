@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="./js/svg/d3.js" charset="utf-8"></script>
+		<script src="./js/svg/rave.js" charset="utf-8"></script>
+		<script src="./js/jDependency.js" charset="utf-8"></script>
+		<link rel="stylesheet" type="text/css" href="./css/jDependency.css"/>
+	</head>
+		
+	<body>
+		<button onclick="doHideDependencies()">Hide Dependencies</button>
+		<div id="canvas" style="width:820px;height:600px"/>
+		<script>
+			var urlContext = window.location.href + "/..";
+			var jdContext = new jd.JDContext("#canvas", urlContext, true);
+			var jdCanvas = new jd.JDCanvas(jdContext);
+			
+			function doHideDependencies(){
+				jdCanvas.hideDependencies();
+			}
+			
+			function getDependencies2(){
+				var r = {};
+				
+				//item
+				var item = {};
+				item.id = 0;
+				item.name = "jobarray0";
+				item.type = "jobarray";
+				item.status = "pending";
+				r.item = item;
+				
+				//the parent
+				var parentItem = {};
+				parentItem.id = "-";
+				parentItem.type = "and";
+				parentItem.condition = "";
+				
+				var parentItems = [];
+				//another logical item
+				var andItem1 = {};
+				andItem1.id = "-";
+				andItem1.type = "or";
+				andItem1.condition = "";
+				var andItems1 = [];
+				for(var i=0;i<10;i++){
+					var item = {};
+					item.id = 200 + i;
+					item.name = "jobarray" + item.id;
+					item.type = "jobarray";
+					item.status = "waiting";
+					item.condition = "exit";
+					andItems1.push(item);
+				}
+				andItem1.items = andItems1;				
+				parentItems.push(andItem1);
+				
+				//another logical item
+				var andItem2 = {};
+				andItem2.id = "-";
+				andItem2.type = "or";
+				andItem2.condition = "";				
+				var andItems2 = [];
+				for(var i=0;i<2;i++){
+					var item = {};
+					item.id = 300 + i;
+					item.name = "jobarray" + item.id;
+					item.type = "jobarray";
+					item.status = "waiting";
+					item.condition = "!exit";
+					andItems2.push(item);
+				}
+				andItem2.items = andItems2;
+				andItems1.push(andItem2);
+				
+				parentItem.items = parentItems;
+				r.parentItem = parentItem;
+				
+				//sub items
+				var subItems = [];
+				for(var i=0;i<3;i++){
+					var item = {};
+					item.id = 300 + i;
+					item.name = "job" + item.id;
+					item.type = "job";
+					item.status = "onhold";
+					subItems.push(item);
+				}
+				r.subItems = subItems;
+				
+				return r;
+			}
+			
+			function getDependencies(){
+				var r = {};
+				
+				//the current item
+				var item = {};
+				item.id = 0;
+				item.type = "jobarray";
+				item.status = "pending";
+				r.item = item;
+				
+				//the parent item is an dependency expression
+				//the dependency expression is a logical expression
+				//composed of one of more dependency conditions				
+				var parentItem = {};
+				parentItem.id = "-";
+				parentItem.type = "and";
+				parentItem.condition = "done(123) && exit(123)";
+				var parentItems = [];
+				for(var i=0;i<20;i++){
+					var item = {};
+					item.id = 200 + i;
+					item.type = "job";
+					item.status = "waiting";
+					item.condition = "done";
+					parentItems.push(item);
+				}
+				
+				//another logical item
+				var andItem = {};
+				andItem.id = "-";
+				andItem.type = "or";
+				andItem.condition = "done(223) && exit(223)";
+				var andItems = [];
+				for(var i=0;i<10;i++){
+					var item = {};
+					item.id = 300 + i;
+					item.type = "jobarray";
+					item.status = "waiting";
+					item.condition = "exit";
+					andItems.push(item);
+				}
+				andItem.items = andItems;
+				parentItems.push(andItem);
+				
+				parentItem.items = parentItems;
+				r.parentItem = parentItem;
+				
+				//sub items
+				var subItems = [];
+				for(var i=0;i<3;i++){
+					var item = {};
+					item.id = 300 + i;
+					item.type = "job";
+					item.status = "waiting";
+					subItems.push(item);
+				}
+				r.subItems = subItems;
+				
+				return r;
+			}
+			
+			function main(){
+				//show diagram on excel position
+				jdCanvas.data = getDependencies2();
+				jdCanvas.show();
+				
+			}
+			main()
+		</script>
+	</body>
+
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="./js/d3.js" charset="utf-8"></script>
+		<script src="./js/rave.js" charset="utf-8"></script>
+		<script src="./js/jProgress.js" charset="utf-8"></script>
+		<link rel="stylesheet" type="text/css" href="./css/jProgress.css"/>
+	</head>
+	
+	<body>
+		<table>
+			<tr>
+				<th>Running (no RTL)</th>
+				<td><div id="div0" style="width:500px;height:80px"/></td>
+			</tr>
+			<tr>
+				<th>Running (EET &lt; RTL)</th>
+				<td><div id="div1" style="width:500px;height:80px"/></td>
+			</tr>
+			<tr>
+				<th>Running (EET = RTL)</th>
+				<td><div id="div2" style="width:500px;height:80px"/></td>
+			</tr>
+			<tr>
+				<th>Running (EET &gt; RTL)</th>
+				<td><div id="div3" style="width:500px;height:80px"/></td>
+			</tr>
+			<tr>
+				<th>Running (no ST, no EET, no RTL)</th>
+				<td><div id="div4" style="width:500px;height:80px"/></td>
+			</tr>
+			<tr>
+				<th>Running (no ST no EET, CT &lt; RTL)</th>
+				<td><div id="div5" style="width:500px;height:80px"/></td>
+			</tr>
+			<tr>
+				<th>Running (no EET, no RTL)</th>
+				<td><div id="div6" style="width:500px;height:80px"/></td>
+			</tr>
+			<tr>
+				<th>Running (no EET, CT &lt; RTL)</th>
+				<td><div id="div7" style="width:500px;height:80px"/></td>
+			</tr>			
+		</table>
+
+		<script>
+			function showCase0(){
+				var times = {
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: new Date("2015-12-31T00:10:00.0000Z"),
+					ctTime: new Date("2015-12-31T00:20:00.0000Z"),
+					eetTime: new Date("2015-12-31T00:59:00.0000Z"),
+					rtlTime: null,
+				}
+				showProgressBar("#div0", times);
+			}
+			
+			function showCase1(){
+				var times = {
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: new Date("2015-12-31T00:10:00.0000Z"),
+					ctTime: new Date("2015-12-31T00:40:00.0000Z"),
+					eetTime: new Date("2015-12-31T00:50:00.0000Z"),
+					rtlTime: new Date("2015-12-31T00:59:00.0000Z"),
+				}
+				showProgressBar("#div1", times);
+			}
+
+			function showCase2(){
+				var times = {			
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: new Date("2015-12-31T00:10:00.0000Z"),
+					ctTime: new Date("2015-12-31T00:40:00.0000Z"),
+					eetTime: new Date("2015-12-31T00:59:00.0000Z"),
+					rtlTime: new Date("2015-12-31T00:59:00.0000Z"),
+				}
+				showProgressBar("#div2", times);
+			}
+			
+			function showCase3(){
+				var times = {
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: new Date("2015-12-31T00:10:00.0000Z"),
+					ctTime: new Date("2015-12-31T00:40:00.0000Z"),
+					eetTime: new Date("2015-12-31T00:59:00.0000Z"),
+					rtlTime: new Date("2015-12-31T00:50:00.0000Z"),
+				}
+				showProgressBar("#div3", times);
+			}
+			function showCase4(){
+				var times = {
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: null,
+					ctTime: new Date("2015-12-31T00:40:00.0000Z"),
+					eetTime: null,
+					rtlTime: null,
+				}
+				showProgressBar("#div4", times);
+			}
+			
+			function showCase5(){
+				var times = {
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: null,
+					ctTime: new Date("2015-12-31T00:40:00.0000Z"),
+					eetTime: null,
+					rtlTime: new Date("2015-12-31T00:45:00.0000Z"),
+				}
+				showProgressBar("#div5", times);
+			}			
+			function showCase6(){
+				var times = {
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: new Date("2015-12-31T00:10:00.0000Z"),
+					ctTime: new Date("2015-12-31T00:40:00.0000Z"),
+					eetTime: null,
+					rtlTime: null,
+				}
+				showProgressBar("#div6", times);
+			}
+			
+			function showCase7(){
+				var times = {
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: new Date("2015-12-31T00:10:00.0000Z"),
+					ctTime: new Date("2015-12-31T00:40:00.0000Z"),
+					eetTime: null,
+					rtlTime: new Date("2015-12-31T00:45:00.0000Z"),
+				}
+				showProgressBar("#div7", times);
+			}
+			
+			function showProgressBar(div, times){
+				//initialize the context
+				var context = new jp.ProgressBarContext(div);
+				
+				//initilize the progress bar object
+				var progressBar = new jp.ProgressBar(context, times, "running");
+				progressBar.show();
+			}
+			
+			function main(){
+				showCase0();
+				showCase1();
+				showCase2();
+				showCase3();
+				showCase4();
+				showCase5();
+				showCase6();
+				showCase7();
+			}
+			main()
+		</script>
+	</body>
+
+</html>

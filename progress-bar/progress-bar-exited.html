@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="./js/d3.js" charset="utf-8"></script>
+		<script src="./js/rave.js" charset="utf-8"></script>
+		<script src="./js/jProgress.js" charset="utf-8"></script>
+		<link rel="stylesheet" type="text/css" href="./css/jProgress.css"/>
+	</head>
+		
+	<body>
+		<table>
+			<tr>
+				<th>Exited (while pending)</th>
+				<td><div id="div0" style="width:500px;height:80px"/></td>
+			</tr>
+			<tr>
+				<th>Exited (while running)</th>
+				<td><div id="div1" style="width:500px;height:80px"/></td>
+			</tr>
+		</table>
+		
+		<!-- <div class="tooltip">Current Time: 2015-12-09 10:05:00</div> -->
+		<script>
+			function showCase0(){
+				var times = {			
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: null,
+					etTime: new Date("2015-12-31T00:59:00.0000Z"),
+				}
+				showProgressBar("#div0", times);
+			}
+			
+			function showCase1(){
+				var times = {			
+					smtTime: new Date("2015-12-31T00:00:00.0000Z"),
+					stTime: new Date("2015-12-31T00:20:00.0000Z"),
+					etTime: new Date("2015-12-31T00:59:00.0000Z"),
+				}
+				showProgressBar("#div1", times);
+			}
+			
+			function showProgressBar(div, times){
+				//initialize the context
+				var context = new jp.ProgressBarContext(div);
+				
+				//initilize the progress bar object
+				var progressBar = new jp.ProgressBar(context, times, "EXIT");
+				progressBar.show();
+			}
+			
+			function main(){
+				showCase0();
+				showCase1();
+			}
+			main()
+		</script>
+	</body>
+
+</html>

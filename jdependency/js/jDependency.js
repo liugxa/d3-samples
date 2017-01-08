@@ -326,7 +326,10 @@ jDependency.JDDiagram = function(context, jdId, position, item){
 	this.show = function(){
 		var _self = this;
 		var drag = svg.behavior.drag().on("drag", function() {
-			var position = new jd.JDPosition(_self.context, svg.event.x , svg.event.y);
+			var x = _self.position.x + svg.event.dx;
+			var y = _self.position.y + svg.event.dy;
+			
+			var position = new jd.JDPosition(_self.context, x, y);
 			_self.move(position);
 		});
 		
